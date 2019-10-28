@@ -10,9 +10,9 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('-p', '--path', dest='path',
                   required=True,
-                  help='BAse data path?')
+                  help='Base data path?')
 
-parser.add_argument('-n','--num',dest='num',required=False,type=int)
+parser.add_argument('-t','--tag',dest='tag',required=True,type=int)
 
 args = parser.parse_args()
 
@@ -22,12 +22,12 @@ jsonpath = os.path.join(args.path,"data.json")
 with open(jsonpath) as json_file:
         data = json.load(json_file)
 
-write_path = os.path.join(args.path,"separations")
+write_path = os.path.join(args.path,"normalz")
 
 if not os.path.exists(write_path):
     os.mkdir(write_path)
-else:
-    os.system("rm {}".format(os.path.join(write_path,"*")))
+#else:
+    #os.system("rm {}".format(os.path.join(write_path,"*")))
 
 huedict = {}
 
@@ -38,17 +38,18 @@ for obj in data["objects"]:
 
 
 
-def separate(imgpath,maskpath,entry,ind):
+def separate(imgpath,maskpath,normpath,entry,ind):
 
     class_counts = {"Engine":0,"Wing":0,"Brick":0,"Pole":0}
     files = {}
     files["images"] = []
     files["masks"] = []
     kernel = np.ones((2,2), np.uint8) 
+    pairs = []
 
 
     img = cv2.imread(imgpath)
-
+    normsimg = cv2.imread(normpath)
     mask = cv2.imread(maskpath)
     hsvmask = cv2.cvtColor(mask,cv2.COLOR_BGR2HSV)
 
@@ -79,47 +80,38 @@ def separate(imgpath,maskpath,entry,ind):
         threshed = cv2.medianBlur(threshed.astype(np.uint8), 3)
         threshed = cv2.dilate(threshed, kernel, iterations=1) 
 
-        piece = huedict[hu]
-        piecetype = data["objects"][piece]["class"]
-        class_counts[piecetype]+=1
+        masked = cv2.bitwise_and(img,img,mask=threshed)
+        normsmasked = cv2.bitwise_and(normsimg,normsimg,mask=threshed)
 
-        filename = "{}_mask_{}_{}.png".format(ind,piecetype,class_counts[piecetype])
-        threshpath = os.path.join(write_path,filename)
-        files["masks"].append(filename)
+        #masked = cv2.resize(masked, (256,256), interpolation=cv2.INTER_LINEAR)
+        #normsmasked = cv2.resize(normsmasked, (256,256), interpolation=cv2.INTER_LINEAR)
 
-        cv2.imwrite(threshpath,threshed)
+        pairs.append((masked,normsmasked))
 
-    if masks > 0:
-        sepspath = os.path.join(write_path,entry["r"])
-        cv2.imwrite(sepspath,img)
+    return pairs
 
-        files["images"].append(entry["r"])
+count = 0
+tag = args.tag
 
-        return files
-
-    return None
-
-
-if args.num:
-
-    entry = data["renders"][args.num]
+for i,entry in enumerate(data["renders"]):
+    
+    print("On image {}".format(i))
+    
     imgpath = os.path.join(args.path,entry["r"]) 
     maskpath = os.path.join(args.path,entry["m"])
-    separate(imgpath,maskpath)
+    normpath = os.path.join(args.path,entry["n"])
 
-else:
+    links = separate(imgpath,maskpath,normpath,entry,i)
 
-    for i,entry in enumerate(data["renders"]):
-        print("On image {}".format(i))
-        imgpath = os.path.join(args.path,entry["r"]) 
-        maskpath = os.path.join(args.path,entry["m"])
+    for pair in links:
 
-        links = separate(imgpath,maskpath,entry,i)
+        wmaskname = "{}_{}.png".format(tag,count)
+        wnormname = "{}_{}_normz.png".format(tag,count)
+        
+        wmask = os.path.join(write_path,wmaskname)
+        wnorm = os.path.join(write_path,wnormname)
+        
+        cv2.imwrite(wnorm,pair[1])
+        cv2.imwrite(wmask,pair[0])
 
-        if links is not None:
-            newdata.append(links)
-
-    jsonpath = os.path.join(write_path,"data.json")
-
-    with open(jsonpath, 'w') as fp:
-        json.dump(newdata,fp)
+        count+=1
