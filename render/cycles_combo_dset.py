@@ -10,10 +10,6 @@ from math import degrees
 import colorsys
 
 
-
-
-
-
 runs = 800
 classes = ["Wing","Pole","Brick","Engine","Slope"]
 
@@ -30,10 +26,6 @@ millis = lambda: int(round(time.time() * 1000))
 timestart = millis()
 random.seed()
 
-HSV = True
-
-#def hasNumbers(instr):
-#    return any(char.isdigit() for char in instr)
 
 mode = "test"
 num = 0
@@ -41,7 +33,7 @@ write_path = "/home/will/projects/legoproj/data/{}_normalsdset_{}/".format(mode,
 while os.path.exists(write_path):
     num += 1
     write_path = "/home/will/projects/legoproj/data/{}_normalsdset_{}/".format(mode,num)
-os.mkdir(write_path)
+#os.mkdir(write_path)
 
 
 bpy.context.scene.render.engine = 'CYCLES'
@@ -55,7 +47,7 @@ camera = bpy.data.objects['Camera']
 
 
 
-imgsdir = "/home/will/projects/legoproj/downloads/table/"
+imgsdir = "/Users/will/projects/legotrain/surface_images/"
 imgpaths = os.listdir(imgsdir)
 imgs = []
 
@@ -241,8 +233,6 @@ def shade(x,subset):
 
 
 
-
-
 def getMatSubset(percent):
 
     nummats = len(mats)
@@ -257,6 +247,7 @@ def getMatSubset(percent):
 
     if len(res) == 0:
         return [mats[random.randint(0,nummats-1)]]
+
     return res
 
 
@@ -279,9 +270,11 @@ def getObjSubset(percent,matchoices):
         if des:
             res.append(obj)
             obj.hide_render = False
+            obj.hide = False
             obj.data.materials[0] = matchoices[random.randint(0,nummatchoices-1)] 
         else:
             obj.hide_render = True
+            obj.hide = True
 
     return res
 
@@ -295,39 +288,23 @@ renderer = bpy.data.scenes["LegoTest"].cycles
 
 
 
-for x in range(runs):
+for x in range(1):
 
     renderer.samples = random.randint(4,5)
 
     strength = random.randint(0,9)*.2
     bg.inputs[1].default_value = strength
 
-    #select subset
     objslice = random.randint(1,13)*.05
     matslice = random.randint(1,5)*.1
 
     matz = getMatSubset(matslice)
     objectz = getObjSubset(objslice,matz)
 
-    camera.location = (random.randint(3,10) * -1 if random.randint(0,1) < 1 else 1, random.randint(3,10) * -1 if random.randint(0,1) < 1 else 1, random.randint(2,10))
+    camera.location = (random.randint(6,10) * -1 if random.randint(0,1) < 1 else 1, random.randint(6,10) * -1 if random.randint(0,1) < 1 else 1, random.randint(5,8))
 
     bpy.context.scene.update()
-
     shade(x,objectz)
-    
-    #select material subset    camera.location = (random.randint(5,7) * -1 if random.randint(0,1) < 1 else 1, random.randint(5,7) * -1 if random.randint(0,1) < 1 else 1, random.randint(6,7))
-
-
-    #change light and lighting
-
-    #change camera views
-
-
-
-
-
-
-
 
 
 with open(write_path + "data.json", 'w') as fp:
