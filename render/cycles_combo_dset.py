@@ -10,8 +10,9 @@ from math import degrees
 import colorsys
 
 
-runs = 800
+runs = 500
 classes = ["Wing","Pole","Brick","Engine","Slope"]
+
 
 def getClass(name):
     for c in classes:
@@ -27,13 +28,13 @@ timestart = millis()
 random.seed()
 
 
-mode = "test"
+mode = "standard"
 num = 0
-write_path = "/home/will/projects/legoproj/data/{}_normalsdset_{}/".format(mode,num)
+write_path = "/home/will/projects/legoproj/data/{}_dset_{}/".format(mode,num)
 while os.path.exists(write_path):
     num += 1
-    write_path = "/home/will/projects/legoproj/data/{}_normalsdset_{}/".format(mode,num)
-#os.mkdir(write_path)
+    write_path = "/home/will/projects/legoproj/data/{}_dset_{}/".format(mode,num)
+os.mkdir(write_path)
 
 
 bpy.context.scene.render.engine = 'CYCLES'
@@ -47,7 +48,7 @@ camera = bpy.data.objects['Camera']
 
 
 
-imgsdir = "/Users/will/projects/legotrain/surface_images/"
+imgsdir = "/home/will/projects/training/surface_images/"
 imgpaths = os.listdir(imgsdir)
 imgs = []
 
@@ -152,7 +153,8 @@ for i,obj in enumerate(objs):
     scenedata["objects"][obj.name]["class"] = getClass(obj.name)
 
 
-scenedata["renders"] = []
+scenedata["viewmats"] = []
+scenedata["runs"] = runs
 
 
 
@@ -209,7 +211,7 @@ def shade(x,subset):
 
     changeTable()
 
-    renderfile = "{}_a.png".format(x)
+    renderfile = "{}.png".format(x)
     maskfile = "mask_{}.png".format(x)
     normalsfile = "normals_{}.png".format(x)
 
@@ -217,7 +219,7 @@ def shade(x,subset):
     mask_path = write_path + maskfile
     normalspath = write_path + normalsfile
 
-    scenedata["renders"].append({"x":x, "r":renderfile, "m":maskfile, "n":normalsfile, "c": str(camera.matrix_world.copy().inverted())})
+    scenedata["viewmats"].append(str(camera.matrix_world.copy().inverted()))
 
     bck.hide_render = True
     bck.hide = True
@@ -228,17 +230,33 @@ def shade(x,subset):
     bpy.ops.render.render(write_still = 1)
 
     shadeMasks(subset,mask_path)
-    shadeNormals(subset,normalspath)
+    #shadeNormals(subset,normalspath)
 
 
 
-def assignMats(objslice,matslice):
 
-    choices = len(matslice)
+def getObjSubset(percent,matchoices):
 
-    for obj in objslice:
-        obj.data.materials[0] = matslice[random.randint(0,choices)] 
-        obj.hide_render = False
+    numobjs = len(objs)
+    choices = int(round(percent*numobjs))
+
+    if choices == 0:
+        choices = 1
+
+    res = []
+
+    for obj in objs:
+
+        des = True if random.randint(0,numobjs) <= choices else False
+
+        if des:
+            res.append(obj)
+            obj.hide_render = False
+            obj.data.materials[0] = random.choice(matchoices)
+        else:
+            obj.hide_render = True
+
+    return res
 
 
 
@@ -249,36 +267,32 @@ bg = world.node_tree.nodes["Background"]
 renderer = bpy.data.scenes["LegoTest"].cycles
 
 
-for obj in objs:
-    hide_render = True
 
+for x in range(runs):
 
-for x in range(1):
+    renderer.samples = random.randint(4,5)
 
-    renderer.samples = random.randint(5,10)
-
-    strength = random.randint(2,8)*.2
+    strength = random.randint(0,4)*.2
     bg.inputs[1].default_value = strength
 
-    objslice = random.sample(objs, random.randint(1,floor(len(objs)/2))) 
-    matslice = random.sample(mats, random.randint(1,len(mats)))
+    objslice = random.randint(1,15)*.05
 
-    assignMats(objslice,matslice)
+    matz = random.sample(mats,random.randint(1,floor(len(mats)/2)))
+    objectz = getObjSubset(objslice,matz)
 
-    camera.location = (random.randint(6,10) * -1 if random.randint(0,1) < 1 else 1, random.randint(6,10) * -1 if random.randint(0,1) < 1 else 1, random.randint(5,8))
+    camera.location = (random.randint(6,8) * -1 if random.randint(0,1) < 1 else 1, random.randint(6,8) * -1 if random.randint(0,1) < 1 else 1, random.randint(5,8))
 
     bpy.context.scene.update()
     shade(x,objectz)
 
-    for obj in objslice:
-        obj.hide_render = True
 
 
-
-with open(write_path + "data.json", 'w') as fp:
+with open(os.path.join(write_path,"dset.json"), 'w') as fp:
     json.dump(scenedata,fp)
 
+
 print("Generated " + str(runs) + " images in " + str(float(millis() - timestart)/1000.0) + " seconds")
+
 
 for obj in objs:
     obj.hide = False
