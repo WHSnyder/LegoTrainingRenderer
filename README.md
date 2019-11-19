@@ -26,7 +26,7 @@ Includes a basic scene with a tracked camera, scripts for rendering images, norm
 
 * dataprep
   * seperate_masks.py: functions for separating the rendered masks by hue according to the json file generated during rendering
-  * cycles_dataprep.py: functions for gathering renders and separated masks into a coco dataset (Matterport Mask R-CNN)
+  * cycles_dataprep.py: functions for gathering renders and separated masks into a COCO dataset
 
 * fileconversion
   * scripts for unzipping and converting files downloaded from printabrick or other random sources
@@ -40,7 +40,7 @@ Includes a basic scene with a tracked camera, scripts for rendering images, norm
 This project should be useful to people interested in generating high quality training data of Lego pieces.  I think Lego will play a very important role in the development of artificial intelligence over the next 10 years.  The need for both fuzzy logic (visual pattern recognition, loose but modular understanding of 3D shape) and structured reasoning (how pieces can be voxelized and fit together logically despite occlusion and subtle structural differences) is something current deep learning approaches struggle with.  Once these dynamics can be reliably predicted, solutions to robotics problems involving subtle movement (fitting pieces together for example) could be explored.
 
 
-I used these scripts in my Lego DL project and I hope to save people the week or so required to learn Blender Python API quirks. 
+I used these scripts in my <a href="https://github.com/WHSnyder/Brickthrough"> Lego DL project </a> and I hope to save people the week or so required to learn Blender Python API quirks. 
 
 
 ## Note: If importing pieces from Leocad/LDRAW scale them down by .016

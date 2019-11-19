@@ -28,8 +28,6 @@ for obj in bpy.context.selected_objects:
 
 
 
-
-
 print("Begining.....\n\n\n")
 
 millis = lambda: int(round(time.time() * 1000))
