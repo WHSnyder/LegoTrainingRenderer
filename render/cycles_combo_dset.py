@@ -8,6 +8,7 @@ import mathutils as mu
 import os
 from math import degrees
 import colorsys
+import sys
 
 
 runs = 500
@@ -19,6 +20,14 @@ def getClass(name):
         if c in name:
             return c
 
+objs = []
+
+for obj in bpy.context.selected_objects:
+    if obj.name !="Table":
+        objs.append(obj)
+
+
+
 
 
 print("Begining.....\n\n\n")
@@ -28,7 +37,7 @@ timestart = millis()
 random.seed()
 
 
-mode = "standard"
+mode = "strd"
 num = 0
 write_path = "/home/will/projects/legoproj/data/{}_dset_{}/".format(mode,num)
 while os.path.exists(write_path):
@@ -98,11 +107,6 @@ normalmat = bpy.data.materials["Normz"]
 
 
 objmasks = {}
-objs = []
-
-for obj in bpy.context.selected_objects:
-    if obj.name !="Table":
-        objs.append(obj)
 
 
 scenedata = {}
@@ -113,20 +117,12 @@ for obj in objs:
     objdata = {}
     objdata["modelmat"] = str(obj.matrix_world)
     scenedata["objects"][obj.name] = objdata
-
     
+
 bpy.context.scene.update()
 
 
-#incs = list(map(lambda x: round(x,1), list(np.arange(.2,1.2,.2))))
-incs0 = [0.0, .6, .3, 1.0]
-incs1 = [.3, .8, .5, 0.1]
-incs2 = [1.0, .0, .5, 0.4]
 endlist = len(objs)
-
-
-
-
 for i,obj in enumerate(objs):
 
     obj.active_material_index = 0
@@ -267,33 +263,33 @@ bg = world.node_tree.nodes["Background"]
 renderer = bpy.data.scenes["LegoTest"].cycles
 
 
+if len(objs) < 15:
 
-for x in range(runs):
+    for x in range(runs):
 
-    renderer.samples = random.randint(4,5)
+        renderer.samples = random.randint(4,11)
 
-    strength = random.randint(0,4)*.2
-    bg.inputs[1].default_value = strength
+        strength = random.randint(1,10)*.2
+        bg.inputs[1].default_value = strength
 
-    objslice = random.randint(1,15)*.05
+        objslice = random.randint(4,10)*.05
 
-    matz = random.sample(mats,random.randint(1,floor(len(mats)/2)))
-    objectz = getObjSubset(objslice,matz)
+        matz = random.sample(mats,random.randint(1,math.floor(len(mats)/2)))
+        objectz = getObjSubset(objslice,matz)
 
-    camera.location = (random.randint(6,8) * -1 if random.randint(0,1) < 1 else 1, random.randint(6,8) * -1 if random.randint(0,1) < 1 else 1, random.randint(5,8))
+        camera.location = (random.randint(6,8) * -1 if random.randint(0,1) < 1 else 1, random.randint(6,8) * -1 if random.randint(0,1) < 1 else 1, random.randint(5,8))
 
-    bpy.context.scene.update()
-    shade(x,objectz)
-
-
-
-with open(os.path.join(write_path,"dset.json"), 'w') as fp:
-    json.dump(scenedata,fp)
+        bpy.context.scene.update()
+        shade(x,objectz)
 
 
-print("Generated " + str(runs) + " images in " + str(float(millis() - timestart)/1000.0) + " seconds")
+    with open(os.path.join(write_path,"dset.json"), 'w') as fp:
+        json.dump(scenedata,fp)
 
+    print("Generated " + str(runs) + " images in " + str(float(millis() - timestart)/1000.0) + " seconds")
 
-for obj in objs:
-    obj.hide = False
-    obj.hide_render = False
+    for obj in objs:
+        obj.hide = False
+        obj.hide_render = False
+else:
+    print("Too many objects...")

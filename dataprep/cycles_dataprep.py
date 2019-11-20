@@ -21,8 +21,8 @@ random.seed(seconds)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-p', '--paths', dest='paths', nargs='+', required=True, help='JSON dset paths?')
-parser.add_argument('-a', '--aug', dest='aug', action='store_true', help='Augment the data or not?', required=False)
-parser.add_argument('-t', '--tag', dest='tag', action='store_true', help='Dset name?', required=True)
+#parser.add_argument('-a', '--aug', dest='aug', action='store_true', help='Augment the data or not?', required=False)
+parser.add_argument('-t', '--tag', dest='tag', help='Dset tag?', required=True)
 args = parser.parse_args()
 
 INFO = {
@@ -113,7 +113,7 @@ def runAug(img, filenum, augmode):
     return filename,img
 '''
 
-for path in args.paths
+for path in args.paths:
     if not os.path.exists(path):
         print("JSON file not found at {}".format(path))
         sys.exit()
@@ -126,49 +126,54 @@ i = j = 0
 
 for path in args.paths:
 
-	with open(path) as json_file:
-    	data = json.load(json_file)
+    with open(path) as json_file:
+        data = json.load(json_file)
 
-    	abspath = os.path.abspath(path)
-    	imagedir = abspath.replace(abspath.split("/")[-1],"")
-    	masksdir = os.path.join(imagedir,"masks")
+        abspath = os.path.abspath(path)
+        imagedir = abspath.replace(abspath.split("/")[-1],"")
+        masksdir = os.path.join(imagedir,"masks")
 
-		for imgfile,masks in data.items():
+        print(len(data.items()))
+        print("==============================================================================")
 
-		    print("Img {}".format(i))
 
-		    continue if not masks
+        for imgfile,masks in data.items():
 
-		    imagepath = os.path.join(imagedir,imgfile)
-		    image = Image.open(imagepath)
+            print("Img {}".format(i))
 
-		    image_info = pycococreatortools.create_image_info(i, imagepath, image.size)
-		    coco_output["images"].append(image_info)
+            if not masks:
+                continue
 
-		    
-		    #for jindex in masks:
-		    for mask in masks:
-		        
-		        maskclass = mask["class"]
-		        maskname = mask["file"]
-		        maskpath = os.path.join(masksdir,maskname)
+            imagepath = os.path.join(imagedir,imgfile)
+            image = Image.open(imagepath)
 
-		        print("\tAnno {} of class: {}".format(j, maskclass))
+            image_info = pycococreatortools.create_image_info(i, imagepath, image.size)
+            coco_output["images"].append(image_info)
 
-		        class_id = [x['id'] for x in CATEGORIES if x['name'] == maskclass][0]
-		        category_info = {'id': class_id, 'is_crowd': False}
+            
+            #for jindex in masks:
+            for mask in masks:
+                
+                maskclass = mask["class"]
+                maskname = mask["file"]
+                maskpath = os.path.join(masksdir,maskname)
 
-		        binary_mask = np.asarray(Image.open(maskpath).convert('1')).astype(np.uint8)
-		        
-		        annotation_info = pycococreatortools.create_annotation_info(
-		            j, i, category_info, binary_mask,
-		            image.size, tolerance=2)
+                print("\tAnno {} of class: {}".format(j, maskclass))
 
-		        if annotation_info is not None:
-		            coco_output["annotations"].append(annotation_info)
-		            j += 1
+                class_id = [x['id'] for x in CATEGORIES if x['name'] == maskclass][0]
+                category_info = {'id': class_id, 'is_crowd': False}
 
-		    i+=1
+                binary_mask = np.asarray(Image.open(maskpath).convert('1')).astype(np.uint8)
+                
+                annotation_info = pycococreatortools.create_annotation_info(
+                    j, i, category_info, binary_mask,
+                    image.size, tolerance=2)
+
+                if annotation_info is not None:
+                    coco_output["annotations"].append(annotation_info)
+                    j += 1
+
+            i+=1
 
 
 with open('{}.json'.format(args.tag), 'w') as output_json_file:
