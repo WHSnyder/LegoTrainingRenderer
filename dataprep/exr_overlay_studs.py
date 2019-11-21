@@ -36,8 +36,9 @@ def getClass(objname):
 def getObjFromHue(hue):
     hue = int(round(hue/5))
     name = data["ids"][str(hue)]
-    if "Engine" not in name:
-        return name
+    if ("Engine" in name) or ("Pole" in name):
+        return None
+    return name
 
 def separate(maskpath):
     

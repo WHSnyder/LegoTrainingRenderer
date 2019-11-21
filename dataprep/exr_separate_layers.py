@@ -27,6 +27,7 @@ def getEXRChannels(dw,channels):
     exr_channels = dw.channels(channels,flo)
     return [np.frombuffer(channel, dtype=np.float32, count=-1, offset=0).reshape((512,512)) for channel in exr_channels]
 
+
 def parseEXRs(indices,basepath):
 
     for i in indices:
