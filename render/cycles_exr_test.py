@@ -11,7 +11,7 @@ import colorsys
 import sys
 
 
-runs = 10
+runs = 120
 classes = ["Wing","Pole","Brick","Engine","Slope"]
 
 
@@ -28,7 +28,7 @@ for obj in bpy.context.selected_objects:
 
 
 
-print("Begining.....\n\n\n")
+print("Begining.....\n==============================================")
 
 millis = lambda: int(round(time.time() * 1000))
 timestart = millis()
@@ -156,6 +156,8 @@ scenedata["projection"] = str(projection_matrix)
 def shade(x,subset):
 
     changeTable()
+
+    print(x)
 
     filename = "{}.exr".format(x)
     #filepath = os.path.join(write_path,filename)
