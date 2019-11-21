@@ -11,7 +11,7 @@ import colorsys
 import sys
 
 
-runs = 20
+runs = 100
 classes = ["Wing","Pole","Brick","Engine","Slope"]
 
 
@@ -65,7 +65,8 @@ for img in bpy.data.images:
     bpy.data.images.remove(img)
 for path in imgpaths:
     img = bpy.data.images.load(filepath=imgsdir+path)
-    imgs.append(img)
+    if img is not None:
+        imgs.append(img)
 
 tablemat = bpy.data.materials["Table"]
 nodes = tablemat.node_tree.nodes
