@@ -52,9 +52,8 @@ def findNearestHue(hue):
     return huedict[hu]
 
 
-def separate(imgpath,maskpath):
+def separate(maskpath):
     
-    img = cv2.imread(imgpath)
     mask = cv2.imread(maskpath)
 
     kernel = np.ones((2,2), np.uint8) 
@@ -90,7 +89,7 @@ maskpath = os.path.join(abspath,"mask_{}.png".format(i))
 
 projmat = fu.matrix_from_string(data["projection"])
 
-masks = separate(imgpath,maskpath)
+masks = separate(maskpath)
 verts = []
 
 for hue in masks:

@@ -10,6 +10,8 @@ from math import degrees
 import colorsys
 import sys
 
+bpy.context.scene.update()
+
 
 runs = 300
 classes = ["Wing","Pole","Brick","Engine","Slope"]
