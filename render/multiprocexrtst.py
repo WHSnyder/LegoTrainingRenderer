@@ -17,7 +17,7 @@ flo = Imath.PixelType(Imath.PixelType.FLOAT)
 
 def getNPFromEXR(dw,channelname):
     channel = dw.channel(channelname,flo)
-    return (255 * np.frombuffer(channel, dtype=np.float32, count=-1, offset=0)).reshape((512,512))
+    return np.frombuffer(channel, dtype=np.float32, count=-1, offset=0).reshape((512,512))
 
 def getFile(p):
     return oe.InputFile(p)
@@ -37,9 +37,14 @@ def parseEXRs(start,end):
         g = getNPFromEXR(dw,"image.G")
         r = getNPFromEXR(dw,"image.R")
 
-        img = cv2.merge([b,g,r]).round().astype(np.uint8)
-
+        img = (255*cv2.merge([b,g,r])).round().astype(np.uint8)
         cv2.imwrite(os.path.join(base,"{}.png".format(i)), img)
+
+        depth = getNPFromEXR(dw,"masks.R")
+        np.save(os.path.join(base,"{}_depth.npy".format(i)), depth)
+        
+
+        #cv2.imwrite(os.path.join(base,"{}_masks.png".format(i)), depth)
 
 
 
@@ -48,6 +53,18 @@ timestart = millis()
 
 runs = 100
 
+threads = []
+
+for i in range(4):
+    threads.append( Process(target=parseEXRs, args=(i*25,(i+1)*25,)) )
+
+for thread in threads:
+    thread.start()
+
+for thread in threads:
+    thread.join()
+
+'''
 thread1 = Process(target=parseEXRs, args=(0,25,))
 thread2 = Process(target=parseEXRs, args=(25,50,))
 thread3 = Process(target=parseEXRs, args=(50,75,))
@@ -62,6 +79,7 @@ thread1.join()
 thread2.join()
 thread3.join()
 thread4.join()
+'''
 
 
 print("Generated " + str(runs) + " images in " + str(float(millis() - timestart)/1000.0) + " seconds")
