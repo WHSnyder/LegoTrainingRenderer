@@ -28,7 +28,7 @@ def getFile(p):
 millis = lambda: int(round(time.time() * 1000))
 timestart = millis()
 
-runs = 20
+runs = 100
 
 for i in range(runs):
 

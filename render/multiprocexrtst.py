@@ -46,12 +46,12 @@ def parseEXRs(start,end):
 millis = lambda: int(round(time.time() * 1000))
 timestart = millis()
 
-runs = 20
+runs = 100
 
-thread1 = Process(target=parseEXRs, args=(0,5,))
-thread2 = Process(target=parseEXRs, args=(5,10,))
-thread3 = Process(target=parseEXRs, args=(10,15,))
-thread4 = Process(target=parseEXRs, args=(15,20,))
+thread1 = Process(target=parseEXRs, args=(0,25,))
+thread2 = Process(target=parseEXRs, args=(25,50,))
+thread3 = Process(target=parseEXRs, args=(50,75,))
+thread4 = Process(target=parseEXRs, args=(75,100,))
 
 thread1.start()
 thread2.start()
