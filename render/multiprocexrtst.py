@@ -15,6 +15,10 @@ forma = 512 * 512 * "f"
 flo = Imath.PixelType(Imath.PixelType.FLOAT)
 
 
+def getImageFromEXR(dw,channels):
+    exr_channels = dw.channels(channels,flo)
+    return [np.frombuffer(channel, dtype=np.float32, count=-1, offset=0).reshape((512,512)) for channel in exr_channels]
+
 def getNPFromEXR(dw,channelname):
     channel = dw.channel(channelname,flo)
     return np.frombuffer(channel, dtype=np.float32, count=-1, offset=0).reshape((512,512))
@@ -33,15 +37,17 @@ def parseEXRs(start,end):
 
         dw = getFile(fullpath)
 
-        b = getNPFromEXR(dw,"image.B")
-        g = getNPFromEXR(dw,"image.G")
-        r = getNPFromEXR(dw,"image.R")
+        #b = getNPFromEXR(dw,"image.B")
+        #g = getNPFromEXR(dw,"image.G")
+        #r = getNPFromEXR(dw,"image.R")
+
+        [b,g,r,d] = getImageFromEXR(dw,["image.B","image.G","image.R","depth.R"])
 
         img = (255*cv2.merge([b,g,r])).round().astype(np.uint8)
         cv2.imwrite(os.path.join(base,"{}.png".format(i)), img)
 
-        depth = getNPFromEXR(dw,"masks.R")
-        np.save(os.path.join(base,"{}_depth.npy".format(i)), depth)
+        #depth = getNPFromEXR(dw,"masks.R")
+        np.save(os.path.join(base,"{}_depth.npy".format(i)), d)
         
 
         #cv2.imwrite(os.path.join(base,"{}_masks.png".format(i)), depth)
