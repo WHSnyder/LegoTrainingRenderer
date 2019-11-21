@@ -11,7 +11,7 @@ import colorsys
 import sys
 
 
-runs = 100
+runs = 300
 classes = ["Wing","Pole","Brick","Engine","Slope"]
 
 
@@ -37,10 +37,10 @@ random.seed()
 
 mode = "exr"
 num = 0
-write_path = "/Users/will/projects/legoproj/data/{}_dset_{}/".format(mode,num)
+write_path = "/home/will/projects/legoproj/data/{}_dset_{}/".format(mode,num)
 while os.path.exists(write_path):
     num += 1
-    write_path = "/Users/will/projects/legoproj/data/{}_dset_{}/".format(mode,num)
+    write_path = "/home/will/projects/legoproj/data/{}_dset_{}/".format(mode,num)
 os.mkdir(write_path)
 
 
@@ -57,7 +57,7 @@ camera = bpy.data.objects['Camera']
 
 
 
-imgsdir = "/Users/will/projects/legotrain/surface_images/"
+imgsdir = "/home/will/projects/training/surface_images/"
 imgpaths = os.listdir(imgsdir)
 imgs = []
 
@@ -72,10 +72,9 @@ tablemat = bpy.data.materials["Table"]
 nodes = tablemat.node_tree.nodes
 imgnode = nodes.get("Image Texture")
 
-chcs = len(imgs)
 
 def changeTable():
-    imgnode.image = imgs[random.randint(0,chcs)]
+    imgnode.image = random.choice(imgs)
 
 
 gray = [.5,.5,.5,1.0]
@@ -161,15 +160,11 @@ def shade(x,subset):
     print(x)
 
     filename = "{}.exr".format(x)
-    #filepath = os.path.join(write_path,filename)
 
     scenedata["viewmats"].append(str(camera.matrix_world.copy().inverted()))
 
-
-    #scene.render.filepath = filepath
-    #print(outputnode.keys())
     outputnode.base_path = write_path
-    bpy.context.scene.frame_set(x+1)
+    bpy.context.scene.frame_set(x)
     bpy.context.scene.update()
 
     bpy.ops.render.render(layer="RenderLayer")

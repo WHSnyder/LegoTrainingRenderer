@@ -6,83 +6,72 @@ import os
 import Imath
 import threading
 import time
+import json
+import multiprocessing as mp
 from multiprocessing import Process
+import argparse
 
 
+parser = argparse.ArgumentParser()
+parser.add_argument('-p','--path',dest='path',required=True,help='JSON data path?')
+parser.add_argument('-n','--num',dest='num',required=False,help='Number of files?')
+args = parser.parse_args()
 
+with open(args.path) as json_file:
+    data = json.load(json_file)
 
-forma = 512 * 512 * "f"
 flo = Imath.PixelType(Imath.PixelType.FLOAT)
 
 
-def getNPFromEXR(dw,channelname):
-    channel = dw.channel(channelname,flo)#this line is paintfully slow...
-    return np.frombuffer(channel, dtype=np.float32, count=-1, offset=0).reshape((512,512))
+def getEXRChannels(dw,channels):
+    exr_channels = dw.channels(channels,flo)
+    return [np.frombuffer(channel, dtype=np.float32, count=-1, offset=0).reshape((512,512)) for channel in exr_channels]
 
-def getFile(p):
-    return oe.InputFile(p)
+def parseEXRs(indices,basepath):
 
-def parseEXRs(start,end):
-
-    for i in range(start,end):
+    for i in indices:
+        
         print(i)
-        name = "{:0>4}.exr".format(i+1)
-        base = "/Users/will/projects/legoproj/data/exr_dset_{}/".format(0)
 
+        name = "{:0>4}.exr".format(i)
         fullpath = os.path.join(base,name)
 
-        dw = getFile(fullpath)
-
-        b = getNPFromEXR(dw,"image.B")
-        g = getNPFromEXR(dw,"image.G")
-        r = getNPFromEXR(dw,"image.R")
+        dw = oe.InputFile(fullpath)
+        [b,g,r,d,m] = getEXRChannels(dw,["image.B","image.G","image.R","depth.R","masks.R"])
 
         img = (255*cv2.merge([b,g,r])).round().astype(np.uint8)
         cv2.imwrite(os.path.join(base,"{}.png".format(i)), img)
-
-        depth = getNPFromEXR(dw,"depth.R")
-        np.save(os.path.join(base,"{}_depth.npy".format(i)), depth)
-
-        mask = getNPFromEXR(dw,"")
         
+        np.save(os.path.join(base,"depth_{}.npy".format(i)),d)
 
-        #cv2.imwrite(os.path.join(base,"{}_masks.png".format(i)), depth)
+        h = 5 * (m.round().astype(np.uint8))
+        mask = h > 0
+        s = (200 * mask).astype(np.uint8)
+        v = (200 * mask).astype(np.uint8)
 
-
+        mask = cv2.cvtColor(cv2.merge([h,s,v]),cv2.COLOR_HSV2BGR)
+        cv2.imwrite(os.path.join(base,"mask_{}.png".format(i)),mask)
+      
 
 millis = lambda: int(round(time.time() * 1000))
 timestart = millis()
 
-runs = 100
 
-threads = []
+base = data["dataroot"]
+runs = data["runs"] if not args.num else args.num
+cores = mp.cpu_count()
+num_procs = 1 if runs < cores else cores
+indices = np.array_split( np.arange(runs), num_procs )
 
-for i in range(4):
-    threads.append( Process(target=parseEXRs, args=(i*25,(i+1)*25,)) )
+processes = []
 
-for thread in threads:
-    thread.start()
+for i in indices:
+    processes.append( Process(target=parseEXRs, args=(i,base,)) )
 
-for thread in threads:
-    thread.join()
+for process in processes:
+    process.start()
 
-'''
-thread1 = Process(target=parseEXRs, args=(0,25,))
-thread2 = Process(target=parseEXRs, args=(25,50,))
-thread3 = Process(target=parseEXRs, args=(50,75,))
-thread4 = Process(target=parseEXRs, args=(75,100,))
+for process in processes:
+    process.join()
 
-thread1.start()
-thread2.start()
-thread3.start()
-thread4.start()
-
-thread1.join()
-thread2.join()
-thread3.join()
-thread4.join()
-'''
-
-
-print("Generated " + str(runs) + " images in " + str(float(millis() - timestart)/1000.0) + " seconds")
-
+print("Processed " + str(runs) + " files in " + str(float(millis() - timestart)/1000.0) + " seconds")

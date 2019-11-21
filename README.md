@@ -1,7 +1,7 @@
-# LegoImageRenderer for Blender 2.79
+# Lego Renderer for Machine Learning Projects
 
 
-A set of Python scripts/Blender utilities for rendering Lego scenes for use in training deep learning algorithms.
+A set of Python scripts/Blender utilities for rendering Lego scenes for use in deep learning/computer vision projects.
 Includes a basic scene with a tracked camera, scripts for rendering images, normals, masks of Lego combinations, and utilities for recording the positions of special features on different pieces (studs, corners, holes) easily.
 
 
