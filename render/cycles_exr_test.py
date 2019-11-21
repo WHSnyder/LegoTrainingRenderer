@@ -11,7 +11,7 @@ import colorsys
 import sys
 
 
-runs = 120
+runs = 20
 classes = ["Wing","Pole","Brick","Engine","Slope"]
 
 
@@ -28,7 +28,7 @@ for obj in bpy.context.selected_objects:
 
 
 
-print("Begining.....\n==============================================")
+print("Begining.....\n")
 
 millis = lambda: int(round(time.time() * 1000))
 timestart = millis()
@@ -37,10 +37,10 @@ random.seed()
 
 mode = "exr"
 num = 0
-write_path = "/home/will/projects/legoproj/data/{}_dset_{}/".format(mode,num)
+write_path = "/Users/will/projects/legoproj/data/{}_dset_{}/".format(mode,num)
 while os.path.exists(write_path):
     num += 1
-    write_path = "/home/will/projects/legoproj/data/{}_dset_{}/".format(mode,num)
+    write_path = "/Users/will/projects/legoproj/data/{}_dset_{}/".format(mode,num)
 os.mkdir(write_path)
 
 
@@ -57,7 +57,7 @@ camera = bpy.data.objects['Camera']
 
 
 
-imgsdir = "/home/will/projects/training/surface_images/"
+imgsdir = "/Users/will/projects/legotrain/surface_images/"
 imgpaths = os.listdir(imgsdir)
 imgs = []
 
