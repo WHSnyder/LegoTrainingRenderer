@@ -11,7 +11,7 @@ import colorsys
 import sys
 
 
-runs = 500
+runs = 10
 classes = ["Wing","Pole","Brick","Engine","Slope"]
 
 
@@ -37,14 +37,16 @@ random.seed()
 
 mode = "exr"
 num = 0
-write_path = "/Users/will/projects/legoproj/data/{}_dset_{}/".format(mode,num)
+write_path = "/home/will/projects/legoproj/data/{}_dset_{}/".format(mode,num)
 while os.path.exists(write_path):
     num += 1
-    write_path = "/Users/will/projects/legoproj/data/{}_dset_{}/".format(mode,num)
+    write_path = "/home/will/projects/legoproj/data/{}_dset_{}/".format(mode,num)
 os.mkdir(write_path)
 
 
 bpy.context.scene.render.engine = 'CYCLES'
+outputnode = bpy.context.scene.node_tree.nodes["File Output"]
+outputnode.base_path = write_path
 
 
 
@@ -57,7 +59,6 @@ camera = bpy.data.objects['Camera']
 
 imgsdir = "/home/will/projects/training/surface_images/"
 imgpaths = os.listdir(imgsdir)
-chcs = len(imgpaths)
 imgs = []
 
 for img in bpy.data.images:
@@ -69,6 +70,8 @@ for path in imgpaths:
 tablemat = bpy.data.materials["Table"]
 nodes = tablemat.node_tree.nodes
 imgnode = nodes.get("Image Texture")
+
+chcs = len(imgs)
 
 def changeTable():
     imgnode.image = imgs[random.randint(0,chcs)]
@@ -116,7 +119,7 @@ bpy.context.scene.update()
 
 
 
-scenedata["ids"] = {}
+scenedata["ids"] = {0:None}
 for i,obj in enumerate(objs):
 
     obj.active_material_index = 0
@@ -138,7 +141,7 @@ bck.active_material_index = 0
 scene.render.resolution_x = 512
 scene.render.resolution_y = 512
 scene.render.resolution_percentage = 100
-scene.render.image_settings.file_format = 'OpenEXR MultiLayer'
+scene.render.image_settings.file_format = 'OPEN_EXR_MULTILAYER'
 
 bpy.context.scene.update()
 projection_matrix = camera.calc_matrix_camera(
@@ -155,14 +158,18 @@ def shade(x,subset):
     changeTable()
 
     filename = "{}.exr".format(x)
-    filepath = write_path + filename
+    #filepath = os.path.join(write_path,filename)
 
     scenedata["viewmats"].append(str(camera.matrix_world.copy().inverted()))
 
+
+    #scene.render.filepath = filepath
+    #print(outputnode.keys())
+    outputnode.base_path = write_path
+    bpy.context.scene.frame_set(x+1)
     bpy.context.scene.update()
 
-    scene.render.filepath = render_path
-    bpy.ops.render.render(write_still = 1)#,layer="RenderLayer")
+    bpy.ops.render.render(layer="RenderLayer")
 
 
 
@@ -197,9 +204,9 @@ renderer = bpy.data.scenes["LegoTest"].cycles
 
 for x in range(runs):
 
-    renderer.samples = random.randint(4,11)
+    renderer.samples = random.randint(10,15)
 
-    strength = random.randint(1,10)*.2
+    strength = random.randint(2,10)*.1
     bg.inputs[1].default_value = strength
 
     objslice = random.randint(4,10)*.05

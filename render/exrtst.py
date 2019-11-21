@@ -2,15 +2,18 @@ import OpenEXR as oe
 import numpy as np
 import cv2
 import struct
+import os
 
 
 
-path = "0050.exr"
+name = "000{}.exr".format(9)
+base = "/home/will/projects/legoproj/data/exr_dset_{}/".format(1)
 
+fullpath = os.path.join(base,name)
 # Open the input file
-dw = oe.InputFile(path)
+dw = oe.InputFile(fullpath)
 
-#print(dw.header())
+print(dw.header())
 
 forma = 512 * 512 * "f"
 
