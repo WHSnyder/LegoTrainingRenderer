@@ -41,7 +41,7 @@ def parseEXRs(indices,basepath):
         [b,g,r,d,m] = getEXRChannels(dw,["image.B","image.G","image.R","depth.R","masks.R"])
 
         img = (255*cv2.merge([b,g,r])).round().astype(np.uint8)
-        cv2.imwrite(os.path.join(base,"{}.png".format(i)), img)
+        cv2.imwrite(os.path.join(base,"{}.png".format(i)),img)
         
         np.save(os.path.join(base,"depth_{}.npy".format(i)),d)
 

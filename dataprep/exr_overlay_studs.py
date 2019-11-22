@@ -6,6 +6,9 @@ import numpy as np
 import sys
 import multiprocessing as mp
 from multiprocessing import Process
+import random
+
+random.seed()
 
 sys.path.append("/home/will/projects/legoproj/")
 
@@ -36,9 +39,10 @@ def getClass(objname):
 def getObjFromHue(hue):
     hue = int(round(hue/5))
     name = data["ids"][str(hue)]
-    if ("Engine" in name) or ("Pole" in name):
-        return None
+    #if ("Engine" in name) or ("Pole" in name):
+    #    return None
     return name
+
 
 def separate(maskpath):
     
@@ -69,11 +73,22 @@ def separate(maskpath):
     return maskdict
 
 
+def find_nearest(array, value):
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    return array[idx]
+
+
 def overlay(i):
+
+    #print(i)
 
     imgname = "{}.png".format(i)
     imgpath = os.path.join(abspath,imgname) 
     maskpath = os.path.join(abspath,"mask_{}.png".format(i))
+
+    depthpath = os.path.join(abspath,"depth_{}.npy".format(i))
+    depthmap = np.load(depthpath,allow_pickle=True)
 
     projmat = fu.matrix_from_string(data["projection"])
 
@@ -92,18 +107,35 @@ def overlay(i):
         else:
             continue
 
+        studs = np.array(studs,dtype=np.float32)
+
         modelmat = fu.matrix_from_string(data["objects"][objname]["modelmat"])
         viewmat = fu.matrix_from_string(data["viewmats"][i])
 
-        screenverts = fu.toNDC(fu.verts_to_screen(modelmat, viewmat, projmat, studs), (512,512))
+        screenverts = fu.verts_to_screen(modelmat, viewmat, projmat, studs)
 
-        screenverts = [vert for vert in screenverts if ((0 < vert[0] < 512) and (0<vert[1]<512))]
-        verts += screenverts
+        if screenverts.size == 0:
+            continue
+
+        screenverts[:,0:2] = fu.toNDC(screenverts[:,0:2], (512,512)).astype(np.int_)
+        #print(screenverts)
+
+        visibleverts = [v for v in screenverts if depthmap[int(v[0]),int(v[1])] < abs(v[2])]
+
+        if len(visibleverts) > 0 and i == 65:
+            v = random.choice(visibleverts)
+            d = v[2]
+            print(depthmap)
+            #near = find_nearest(np.absolute(depthmap),d)
+            #dtrue = depthmap[int(v[0]),int(v[1])]
+            #print("Depthmap value {}, cam dist {}".format(dtrue,d))
+            
+        verts += visibleverts
 
     img = cv2.imread(imgpath)
 
     for vert in verts:
-        cv2.circle(img, tuple(vert), 5, (200,50,50),3)
+        cv2.circle(img, tuple(vert[0:2].astype(np.int_)), 5, (200,50,50),3)
 
     cv2.imwrite(os.path.join(abspath,"studs_{}.png".format(i)),img)
 
@@ -112,7 +144,7 @@ def overlay(i):
 def iterOverlay(indices):
     for ind in indices:
         overlay(ind)
-        print(ind)
+        #print(ind)
 
 
 
