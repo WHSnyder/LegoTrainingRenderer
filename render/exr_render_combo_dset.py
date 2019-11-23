@@ -12,8 +12,7 @@ import sys
 
 bpy.context.scene.update()
 
-
-runs = 300
+runs = 10
 classes = ["Wing","Pole","Brick","Engine","Slope"]
 
 
@@ -187,12 +186,12 @@ def getObjSubset(percent,matchoices):
 
         des = True if random.randint(0,numobjs) <= choices else False
 
-        if des:
-            res.append(obj)
-            obj.hide_render = False
-            obj.data.materials[0] = random.choice(matchoices)
-        else:
-            obj.hide_render = True
+    #if des:
+        res.append(obj)
+        obj.hide_render = False
+        obj.data.materials[0] = random.choice(matchoices)
+    #else:
+    #    obj.hide_render = True
 
     return res
 
