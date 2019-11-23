@@ -12,7 +12,7 @@ import sys
 
 bpy.context.scene.update()
 
-runs = 10
+runs = 500
 classes = ["Wing","Pole","Brick","Engine","Slope"]
 
 
@@ -50,12 +50,9 @@ outputnode = bpy.context.scene.node_tree.nodes["File Output"]
 outputnode.base_path = write_path
 
 
-
-
 scene = bpy.context.scene
 scene_objs = bpy.data.objects
 camera = bpy.data.objects['Camera']
-
 
 
 imgsdir = "/home/will/projects/training/surface_images/"
@@ -160,14 +157,10 @@ def shade(x,subset):
 
     print(x)
 
-    filename = "{}.exr".format(x)
-
     scenedata["viewmats"].append(str(camera.matrix_world.copy().inverted()))
 
-    outputnode.base_path = write_path
     bpy.context.scene.frame_set(x)
     bpy.context.scene.update()
-
     bpy.ops.render.render(layer="RenderLayer")
 
 
@@ -186,12 +179,12 @@ def getObjSubset(percent,matchoices):
 
         des = True if random.randint(0,numobjs) <= choices else False
 
-    #if des:
-        res.append(obj)
-        obj.hide_render = False
-        obj.data.materials[0] = random.choice(matchoices)
-    #else:
-    #    obj.hide_render = True
+        if des:
+            res.append(obj)
+            obj.hide_render = False
+            obj.data.materials[0] = random.choice(matchoices)
+        else:
+            obj.hide_render = True
 
     return res
 
@@ -201,21 +194,22 @@ world.use_nodes = True
 bg = world.node_tree.nodes["Background"]
 renderer = bpy.data.scenes["LegoTest"].cycles
 
+
 for x in range(runs):
 
     renderer.samples = random.randint(10,15)
 
     strength = random.randint(2,10)*.1
-    bg.inputs[1].default_value = strength
+    #bg.inputs[1].default_value = strength
 
     objslice = random.randint(4,10)*.05
 
-    matz = random.sample(mats,random.randint(1,math.floor(len(mats)/2)))
+    matz = random.sample(mats,random.randint(1,math.floor(len(mats)/1.2)))
     objectz = getObjSubset(objslice,matz)
 
-    cx = random.randint(6,8) * -1 if random.randint(0,1) < 1 else 1
-    cy = random.randint(6,8) * -1 if random.randint(0,1) < 1 else 1
-    cz = random.randint(4,8)
+    cx = random.randint(5,6) * -1 if random.randint(0,1) < 1 else 1
+    cy = random.randint(5,6) * -1 if random.randint(0,1) < 1 else 1
+    cz = random.randint(5,6)
 
     camera.location = (cx,cy,cz)
 

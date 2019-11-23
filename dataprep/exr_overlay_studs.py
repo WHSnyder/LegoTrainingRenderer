@@ -72,17 +72,11 @@ def separate(maskpath):
 
     return maskdict
 
-'''
-def find_nearest(index,depth,dims):
-
-    array = np.asarray(array)
-    idx = (np.abs(array - value)).argmin()
-    return array[idx]
-'''
 
 def overlay(i):
 
-    #print(i)
+    print(i)
+    
     imgname = "{}.png".format(i)
     imgpath = os.path.join(abspath,imgname) 
     maskpath = os.path.join(abspath,"mask_{}.png".format(i))
@@ -119,25 +113,17 @@ def overlay(i):
             continue
 
         screenverts[:,0:2] = fu.toNDC(screenverts[:,0:2], (512,512))
-        visibleverts = [v for v in screenverts if depthmap[int(v[1]),int(v[0])] - abs(v[2]) > -0.1]
-        #print(objname)
-        for v in screenverts:
-            #v = random.choice(visibleverts)
-            d = abs(v[2])
-            dtrue = depthmap[int(v[1]),int(v[0])]
-            #print(dtrue-abs(d))
-            #print("Depthmap value {}, Calculated value dist {}".format(dtrue,d))
+        visibleverts = [v for v in screenverts if depthmap[int(v[1]),int(v[0])] - abs(v[2]) > -0.05]
             
         if visibleverts:
             verts+=visibleverts
 
     img = cv2.imread(imgpath)
-    #print(verts)
 
     for v in verts:
         x=int(v[0])
         y=int(v[1])
-        cv2.circle(img, (x,y), 2, (50,50,200),1)
+        cv2.circle(img, (x,y), 4, (50,50,200),-1)
 
     cv2.imwrite(os.path.join(abspath,"studs_{}.png".format(i)),img)
 
