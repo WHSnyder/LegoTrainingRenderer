@@ -39,8 +39,8 @@ def getClass(objname):
 def getObjFromHue(hue):
     hue = int(round(hue/5))
     name = data["ids"][str(hue)]
-    #if ("Engine" in name) or ("Pole" in name):
-    #    return None
+    if ("Engine" in name) or ("Pole" in name):
+        return None
     return name
 
 
@@ -120,13 +120,13 @@ def overlay(i):
 
         screenverts[:,0:2] = fu.toNDC(screenverts[:,0:2], (512,512))
         visibleverts = [v for v in screenverts if depthmap[int(v[1]),int(v[0])] - abs(v[2]) > -0.1]
-        print(objname)
+        #print(objname)
         for v in screenverts:
             #v = random.choice(visibleverts)
             d = abs(v[2])
             dtrue = depthmap[int(v[1]),int(v[0])]
             #print(dtrue-abs(d))
-            print("Depthmap value {}, Calculated value dist {}".format(dtrue,d))
+            #print("Depthmap value {}, Calculated value dist {}".format(dtrue,d))
             
         if visibleverts:
             verts+=visibleverts
@@ -137,7 +137,7 @@ def overlay(i):
     for v in verts:
         x=int(v[0])
         y=int(v[1])
-        cv2.circle(img, (x,y), 2, (50,50,200),2)
+        cv2.circle(img, (x,y), 2, (50,50,200),1)
 
     cv2.imwrite(os.path.join(abspath,"studs_{}.png".format(i)),img)
 

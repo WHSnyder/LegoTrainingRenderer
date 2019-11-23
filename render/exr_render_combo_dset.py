@@ -213,7 +213,11 @@ for x in range(runs):
     matz = random.sample(mats,random.randint(1,math.floor(len(mats)/2)))
     objectz = getObjSubset(objslice,matz)
 
-    camera.location = (random.randint(6,8) * -1 if random.randint(0,1) < 1 else 1, random.randint(6,8) * -1 if random.randint(0,1) < 1 else 1, random.randint(5,8))
+    cx = random.randint(6,8) * -1 if random.randint(0,1) < 1 else 1
+    cy = random.randint(6,8) * -1 if random.randint(0,1) < 1 else 1
+    cz = random.randint(4,8)
+
+    camera.location = (cx,cy,cz)
 
     bpy.context.scene.update()
     shade(x,objectz)
