@@ -232,51 +232,13 @@ def shade(x,subset):
 
 
 
+def assignMats(objslice,matslice):
 
-def getMatSubset(percent):
+    choices = len(matslice)
 
-    nummats = len(mats)
-    choices = int(round(percent*nummats))
- 
-    res = []
- 
-    for mat in mats:
-        des = True if random.randint(0,nummats) <= choices else False
-        if des:
-            res.append(mat)
-
-    if len(res) == 0:
-        return [mats[random.randint(0,nummats-1)]]
-
-    return res
-
-
-def getObjSubset(percent,matchoices):
-
-    numobjs = len(objs)
-    choices = int(round(percent*numobjs))
-
-    nummatchoices = len(matchoices)
-
-    if choices == 0:
-        choices = 1
-
-    res = []
-
-    for obj in objs:
-
-        des = True if random.randint(0,numobjs) <= choices else False
-
-        if des:
-            res.append(obj)
-            obj.hide_render = False
-            obj.hide = False
-            obj.data.materials[0] = matchoices[random.randint(0,nummatchoices-1)] 
-        else:
-            obj.hide_render = True
-            obj.hide = True
-
-    return res
+    for obj in objslice:
+        obj.data.materials[0] = matslice[random.randint(0,choices)] 
+        obj.hide_render = False
 
 
 
@@ -287,24 +249,30 @@ bg = world.node_tree.nodes["Background"]
 renderer = bpy.data.scenes["LegoTest"].cycles
 
 
+for obj in objs:
+    hide_render = True
+
 
 for x in range(1):
 
-    renderer.samples = random.randint(4,5)
+    renderer.samples = random.randint(5,10)
 
-    strength = random.randint(0,9)*.2
+    strength = random.randint(2,8)*.2
     bg.inputs[1].default_value = strength
 
-    objslice = random.randint(1,13)*.05
-    matslice = random.randint(1,5)*.1
+    objslice = random.sample(objs, random.randint(1,floor(len(objs)/2))) 
+    matslice = random.sample(mats, random.randint(1,len(mats)))
 
-    matz = getMatSubset(matslice)
-    objectz = getObjSubset(objslice,matz)
+    assignMats(objslice,matslice)
 
     camera.location = (random.randint(6,10) * -1 if random.randint(0,1) < 1 else 1, random.randint(6,10) * -1 if random.randint(0,1) < 1 else 1, random.randint(5,8))
 
     bpy.context.scene.update()
     shade(x,objectz)
+
+    for obj in objslice:
+        obj.hide_render = True
+
 
 
 with open(write_path + "data.json", 'w') as fp:
