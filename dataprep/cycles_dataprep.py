@@ -19,18 +19,15 @@ import time
 seconds = int(time.time() % 60)
 random.seed(seconds)
 
-
 parser = argparse.ArgumentParser()
-parser.add_argument('-j', '--json', dest='json', 
-                  required=True, 
-                  help='jsonpath?')
+parser.add_argument('-p', '--paths', dest='paths', nargs='+', required=True, help='Dset path?')
 parser.add_argument('-a', '--aug', dest='aug', action='store_true', help='Augment the data or not?', required=False)
+parser.add_argument('-t', '--tag', dest='tag', action='store_true', help='Dset name?', required=True)
 args = parser.parse_args()
 
-
 INFO = {
-    "description": "One-of-each Dataset",
-    "url": "https://github.com/waspinator/pycococreator",
+    "description": "",
+    "url": "",
     "version": "0.1.0",
     "year": 2019,
     "contributor": "parasite",
@@ -39,8 +36,8 @@ INFO = {
 LICENSES = [
     {
         "id": 1,
-        "name": "Attribution-NonCommercial-ShareAlike License",
-        "url": "http://creativecommons.org/licenses/by-nc-sa/2.0/"
+        "name": "",
+        "url": ""
     }
 ]
 CATEGORIES = [
@@ -66,7 +63,15 @@ CATEGORIES = [
     }
 ]
 
+coco_output = {
+    "info": INFO,
+    "licenses": LICENSES,
+    "categories": CATEGORIES,
+    "images": [],
+    "annotations": []
+}
 
+'''
 seq = iaa.Sequential([
     iaa.GaussianBlur(sigma=(0, 4.0)),
     iaa.Sometimes(.7, iaa.Multiply((0.7, 1.3), per_channel=0.7)),
@@ -80,9 +85,6 @@ seq = iaa.Sequential([
 def gimme():
     return False if random.randint(0,2) == 0 else True
 
-def gimme4():
-    return random.randint(0,3)
-
 def getClassAndNum(filename):
     parts = filename.split("_")
     num = int(parts[-1].split(".")[0])
@@ -91,6 +93,7 @@ def getClassAndNum(filename):
 
 def getNum(filename):
     return int(filename.split("_")[0])
+'''
 
 
 #mode 0 is normal aug, mode 1 is shadows, mode 2 is stud noise, mode 3 is simplex
@@ -109,31 +112,29 @@ def runAug(img, filenum, augmode):
 
     return filename,img
 '''
+paths=[]
+for path in args.path
+    dsetpath = os.path.join(args.path,"dset_withmasks.json")
+    if not os.path.exists(dsetpath):
+        print("JSON file not found at {}".format(path))
+        sys.exit()
+    paths.append(dsetpath)
 
 
-
-
-with open(args.json) as json_file:
+with open(dsetpath) as json_file:
     data = json.load(json_file)
 
-coco_output = {
-    "info": INFO,
-    "licenses": LICENSES,
-    "categories": CATEGORIES,
-    "images": [],
-    "annotations": []
-}
-
-augflag = False if args.aug is None else True
 
 i = j = 0
 
-for render in data:
+
+for index in data:
 
     print("On image {}".format(i))
 
+    masks = data[index]
+
     filename = render["images"][0]
-    masks = render["masks"]
 
     image = Image.open(filename)
     image_info = pycococreatortools.create_image_info(i, os.path.basename(filename), image.size)
@@ -144,19 +145,7 @@ for render in data:
 
     i += 1
    
-    '''augedname = None
-
-    if augflag:
-        augedname, augedimg = runAug(image, file)
-
-    if augedname is not None:
-        image = Image.open(ROOT_DIR + IMAGE_DIR + augedname)
-        image_info = pycococreatortools.create_image_info(i, os.path.basename(ROOT_DIR + IMAGE_DIR + augedname), image.size)
-        coco_output["images"].append(image_info)
-
-        fileids.append(i)
-        i += 1
-    '''
+    
     #for jindex in masks:
     for mask in masks:
         nextnum, nextype = getClassAndNum(mask)
