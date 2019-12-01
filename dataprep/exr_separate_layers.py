@@ -24,7 +24,7 @@ flo = Imath.PixelType(Imath.PixelType.FLOAT)
 
 
 def getEXRChannels(dw,channels):
-    exr_channels = dw.channels(channels,flo)
+    exr_channels = dw.channels(channels,flo)#<---------------very very slow
     return [np.frombuffer(channel, dtype=np.float32, count=-1, offset=0).reshape((512,512)) for channel in exr_channels]
 
 

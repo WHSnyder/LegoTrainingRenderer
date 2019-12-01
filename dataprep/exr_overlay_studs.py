@@ -40,8 +40,8 @@ def getObjFromHue(hue):
     hue = int(round(hue/5))
     name = data["ids"][str(hue)]
     if ("Engine" in name) or ("Pole" in name):
-        return None
-    return name
+        return name
+    return None
 
 
 def separate(maskpath):
@@ -86,9 +86,13 @@ def overlay(i):
 
     projmat = fu.matrix_from_string(data["projection"])
 
+    studmask = np.zeros((512,512),dtype=np.uint8)
+    image = cv2.imread(imgpath)
+
     masks = separate(maskpath)
     verts = []
     p=False
+
     for hue in masks:
 
         objname = getObjFromHue(hue)
@@ -102,7 +106,6 @@ def overlay(i):
             continue
         
         studs = np.array(studs,dtype=np.float32)
-        #studs = np.array([[-1.95,1.95,0.0,1.0]],dtype=np.float32)
 
         modelmat = fu.matrix_from_string(data["objects"][objname]["modelmat"])
         viewmat = fu.matrix_from_string(data["viewmats"][i])
@@ -116,16 +119,15 @@ def overlay(i):
         visibleverts = [v for v in screenverts if depthmap[int(v[1]),int(v[0])] - abs(v[2]) > -0.05]
             
         if visibleverts:
-            verts+=visibleverts
+            for v in visibleverts:
+                circle_rad = fu.get_circle_length(modelmat,viewmat,projmat,studs[int(v[3])])
+                x=int(v[0])
+                y=int(v[1])
+                cv2.circle(studmask, (x,y), circle_rad, (255,20,20),-1)
+            cv2.bitwise_and(masks[hue],masks[hue],mask=masks[hue])
 
-    img = cv2.imread(imgpath)
 
-    for v in verts:
-        x=int(v[0])
-        y=int(v[1])
-        cv2.circle(img, (x,y), 4, (50,50,200),-1)
-
-    cv2.imwrite(os.path.join(abspath,"studs_{}.png".format(i)),img)
+    cv2.imwrite(os.path.join(abspath,"studs_{}.png".format(i)),studmask)
 
 
 def iterOverlay(indices):

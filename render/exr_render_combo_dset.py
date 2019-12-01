@@ -202,7 +202,7 @@ for x in range(runs):
     strength = random.randint(2,10)*.1
     #bg.inputs[1].default_value = strength
 
-    objslice = random.randint(4,10)*.05
+    objslice = random.randint(4,15)*.05
 
     matz = random.sample(mats,random.randint(1,math.floor(len(mats)/1.2)))
     objectz = getObjSubset(objslice,matz)
