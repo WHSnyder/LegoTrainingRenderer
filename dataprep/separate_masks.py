@@ -7,14 +7,9 @@ import sys
 
 
 parser = argparse.ArgumentParser()
-
-
 parser.add_argument('-p', '--path', dest='path',
                   required=True,
                   help='JSON data path?')
-
-parser.add_argument('-t','--tag',dest='tag',required=False,type=int)
-
 args = parser.parse_args()
 
 newdata = []
@@ -32,31 +27,13 @@ if not os.path.exists(write_path):
 #else:
 #    os.system("rm {}".format(os.path.join(write_path,"*")))
 
-huedict = {}
-
-for obj in data["objects"]:
-    hue = round(data["objects"][obj]["maskhue"],2)
-    huedict[int(round(hue*180))] = obj
-print(len(data["objects"]))
-
-#sys.exit()
 
 class_counts = {"Engine":0,"Wing":0,"Brick":0,"Pole":0}
 
 
-
-#yes this is lazy
-def findNearestHue(hue):
-
-    hu = hue
-    m = -1
-    n = 1
-    while hu not in huedict:
-        hu+=n*m
-        n+=1
-        m*=-1 
-
-    return huedict[hu]
+def getObjFromHue(hue):
+    hue = int(round(hue/5))
+    return data["ids"][str(hue)]
 
 
 
@@ -90,17 +67,13 @@ def separate(imgpath,maskpath):
     return maskdict
 
 
-
-#tag = args.tag
-
-
 count = 0
 links = {}
 
 
 for i in range(data["runs"]):
     
-    print("On image {}".format(i))
+    print(i)
     
     imgname = "{}.png".format(i)
     imgpath = os.path.join(abspath,imgname) 
@@ -115,7 +88,7 @@ for i in range(data["runs"]):
 
     for j,hue in enumerate(masks):
 
-        objname = findNearestHue(hue)
+        objname = getObjFromHue(hue)
         objclass = data["objects"][objname]["class"]
 
         maskname = "{}_{}_{}_mask.png".format(i,j,objclass)

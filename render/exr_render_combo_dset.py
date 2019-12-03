@@ -12,7 +12,11 @@ import sys
 
 bpy.context.scene.update()
 
+<<<<<<< HEAD
 runs = 20
+=======
+runs = 50
+>>>>>>> 8e92a49fa39e4fb5bc3a1073b1e27f0757ecd654
 classes = ["Wing","Pole","Brick","Engine","Slope"]
 
 
@@ -161,7 +165,7 @@ def shade(x,subset):
 
     bpy.context.scene.frame_set(x)
     bpy.context.scene.update()
-    bpy.ops.render.render(layer="RenderLayer")
+    bpy.ops.render.render()#layer="RenderLayer")
 
 
 
@@ -197,12 +201,12 @@ renderer = bpy.data.scenes["LegoTest"].cycles
 
 for x in range(runs):
 
-    renderer.samples = random.randint(10,15)
+    renderer.samples = random.randint(14,15)
 
     strength = random.randint(2,10)*.1
     #bg.inputs[1].default_value = strength
 
-    objslice = random.randint(4,15)*.05
+    objslice = random.randint(2,15)*.05
 
     matz = random.sample(mats,random.randint(1,math.floor(len(mats)/1.2)))
     objectz = getObjSubset(objslice,matz)

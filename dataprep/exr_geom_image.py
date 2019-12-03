@@ -74,7 +74,7 @@ def separate(maskpath):
 
 
 def overlay(i):
-
+    print("wow")
     print(i)
     
     imgname = "{}.png".format(i)
@@ -93,9 +93,13 @@ def overlay(i):
     verts = []
     p=False
 
+    print("ho")
+
     for hue in masks:
 
         objname = getObjFromHue(hue)
+        print("lol")
+
         
         if objname:
             objclass = objname.split(".")[0]
@@ -104,51 +108,28 @@ def overlay(i):
                 stud.append(1.0)
         else:
             continue
-        
+
         studs = np.array(studs,dtype=np.float32)
 
         modelmat = fu.matrix_from_string(data["objects"][objname]["modelmat"])
         viewmat = fu.matrix_from_string(data["viewmats"][i])
 
-        screenverts = fu.verts_to_screen(modelmat, viewmat, projmat, studs)
+        fu.toProjCoords(studs,modelmat,viewmat,projmat)
 
-        if screenverts.size == 0:
-            continue
-
-        screenverts[:,0:2] = fu.toNDC(screenverts[:,0:2], (512,512))
-        visibleverts = [v for v in screenverts if depthmap[int(v[1]),int(v[0])] - abs(v[2]) > -0.05]
-            
-        if visibleverts:
-            for v in visibleverts:
-                circle_rad = fu.get_circle_length(modelmat,viewmat,projmat,studs[int(v[3])])
-                x=int(v[0])
-                y=int(v[1])
-                cv2.circle(studmask, (x,y), circle_rad, (255,20,20),-1)
-            cv2.bitwise_and(masks[hue],image,mask=masks[hue])
-
-
-<<<<<<< HEAD
-    print(abspath)
-    cv2.imwrite(os.path.join(abspath,"studs_{}.png".format(i)),studmask)
-=======
-    cv2.imwrite(os.path.join(abspath,"studs_{}.png".format(i)),image)
->>>>>>> 8e92a49fa39e4fb5bc3a1073b1e27f0757ecd654
-
-
+overlay(2)
+"""
 def iterOverlay(indices):
     for ind in indices:
         overlay(ind)
 
 
 indices = np.arange(data["runs"]) if args.num is None else [args.num] 
-print(indices)
 cores = mp.cpu_count()
 num_procs = 1 if len(indices) < cores else cores
 indices_lists = np.array_split(indices, num_procs)
-print(indices_lists)
 
 processes = []
-'''
+
 for ilist in indices_lists:
     processes.append( Process(target=iterOverlay, args=(ilist,)) )
 
@@ -157,5 +138,4 @@ for process in processes:
 
 for process in processes:
     process.join()
-'''
-iterOverlay(indices)
+"""

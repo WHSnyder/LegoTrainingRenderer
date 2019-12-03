@@ -10,7 +10,11 @@ import random
 
 random.seed()
 
+<<<<<<< HEAD
 sys.path.append("/Users/will/projects/legoproj")
+=======
+sys.path.append("/home/will/projects/legoproj")
+>>>>>>> 8e92a49fa39e4fb5bc3a1073b1e27f0757ecd654
 
 import cvscripts
 from cvscripts import feature_utils as fu
@@ -39,7 +43,11 @@ def getClass(objname):
 def getObjFromHue(hue):
     hue = int(round(hue/5))
     name = data["ids"][str(hue)]
+<<<<<<< HEAD
     if ("Pole" in name):
+=======
+    if ("Engine" in name) or ("Pole" in name):
+>>>>>>> 8e92a49fa39e4fb5bc3a1073b1e27f0757ecd654
         return name
     return None
 
@@ -127,7 +135,10 @@ def overlay(i):
             cv2.bitwise_and(masks[hue],masks[hue],mask=masks[hue])
 
 
+<<<<<<< HEAD
     print(abspath)
+=======
+>>>>>>> 8e92a49fa39e4fb5bc3a1073b1e27f0757ecd654
     cv2.imwrite(os.path.join(abspath,"studs_{}.png".format(i)),studmask)
 
 
@@ -137,6 +148,7 @@ def iterOverlay(indices):
 
 
 indices = np.arange(data["runs"]) if args.num is None else [args.num] 
+<<<<<<< HEAD
 print(indices)
 cores = mp.cpu_count()
 num_procs = 1 if len(indices) < cores else cores
@@ -145,6 +157,14 @@ print(indices_lists)
 
 processes = []
 '''
+=======
+cores = mp.cpu_count()
+num_procs = 1 if len(indices) < cores else cores
+indices_lists = np.array_split(indices, num_procs)
+
+processes = []
+
+>>>>>>> 8e92a49fa39e4fb5bc3a1073b1e27f0757ecd654
 for ilist in indices_lists:
     processes.append( Process(target=iterOverlay, args=(ilist,)) )
 
@@ -152,6 +172,10 @@ for process in processes:
     process.start()
 
 for process in processes:
+<<<<<<< HEAD
     process.join()
 '''
 iterOverlay(indices)
+=======
+    process.join()
+>>>>>>> 8e92a49fa39e4fb5bc3a1073b1e27f0757ecd654
