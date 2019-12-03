@@ -40,8 +40,8 @@ def getObjFromHue(hue):
     hue = int(round(hue/5))
     name = data["ids"][str(hue)]
     if ("Engine" in name) or ("Pole" in name):
-        return name
-    return None
+        return None
+    return name
 
 
 def separate(maskpath):
@@ -110,24 +110,7 @@ def overlay(i):
         modelmat = fu.matrix_from_string(data["objects"][objname]["modelmat"])
         viewmat = fu.matrix_from_string(data["viewmats"][i])
 
-        screenverts = fu.verts_to_screen(modelmat, viewmat, projmat, studs)
-
-        if screenverts.size == 0:
-            continue
-
-        screenverts[:,0:2] = fu.toNDC(screenverts[:,0:2], (512,512))
-        visibleverts = [v for v in screenverts if depthmap[int(v[1]),int(v[0])] - abs(v[2]) > -0.05]
-            
-        if visibleverts:
-            for v in visibleverts:
-                circle_rad = fu.get_circle_length(modelmat,viewmat,projmat,studs[int(v[3])])
-                x=int(v[0])
-                y=int(v[1])
-                cv2.circle(studmask, (x,y), circle_rad, (255,20,20),-1)
-            cv2.bitwise_and(masks[hue],image,mask=masks[hue])
-
-
-    cv2.imwrite(os.path.join(abspath,"studs_{}.png".format(i)),image)
+        fu.toProjCoords(studs,modelmat,viewmat,projmat)
 
 
 def iterOverlay(indices):
