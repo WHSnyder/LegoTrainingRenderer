@@ -10,7 +10,7 @@ import random
 
 random.seed()
 
-sys.path.append("/home/will/projects/legoproj")
+sys.path.append("/Users/will/projects/legoproj")
 
 import cvscripts
 from cvscripts import feature_utils as fu
@@ -40,8 +40,8 @@ def getObjFromHue(hue):
     hue = int(round(hue/5))
     name = data["ids"][str(hue)]
     if ("Engine" in name) or ("Pole" in name):
-        return name
-    return None
+        return None
+    return name
 
 
 def separate(maskpath):
@@ -127,6 +127,7 @@ def overlay(i):
             cv2.bitwise_and(masks[hue],masks[hue],mask=masks[hue])
 
 
+    print(abspath)
     cv2.imwrite(os.path.join(abspath,"studs_{}.png".format(i)),studmask)
 
 
@@ -136,12 +137,14 @@ def iterOverlay(indices):
 
 
 indices = np.arange(data["runs"]) if args.num is None else [args.num] 
+print(indices)
 cores = mp.cpu_count()
 num_procs = 1 if len(indices) < cores else cores
 indices_lists = np.array_split(indices, num_procs)
+print(indices_lists)
 
 processes = []
-
+'''
 for ilist in indices_lists:
     processes.append( Process(target=iterOverlay, args=(ilist,)) )
 
@@ -150,3 +153,5 @@ for process in processes:
 
 for process in processes:
     process.join()
+'''
+iterOverlay(indices)
