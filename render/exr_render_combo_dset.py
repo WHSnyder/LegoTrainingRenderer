@@ -12,11 +12,9 @@ import sys
 
 bpy.context.scene.update()
 
-<<<<<<< HEAD
-runs = 20
-=======
+
+
 runs = 50
->>>>>>> 8e92a49fa39e4fb5bc3a1073b1e27f0757ecd654
 classes = ["Wing","Pole","Brick","Engine","Slope"]
 
 

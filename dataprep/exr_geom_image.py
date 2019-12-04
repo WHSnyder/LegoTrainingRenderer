@@ -25,6 +25,19 @@ with open(args.path) as json_file:
 
 abspath = os.path.abspath(args.path)
 abspath = abspath.replace(abspath.split("/")[-1],"")
+#abspath = abspath.replace(abspath.split("/")[-2],"")[0:-1]
+
+
+
+num=0
+write_path = "/home/will/projects/legoproj/data/{}_geom/".format(num)
+while os.path.exists(write_path):
+    num += 1
+    write_path = "/home/will/projects/legoproj/data/{}_geom/".format(num)
+os.mkdir(write_path)
+
+
+
 
 classes = ["WingR","WingL","Brick","Pole"]
 
@@ -103,7 +116,7 @@ def overlay(i):
     d = np.reshape(depthmap,(512,512,1))
     f = np.concatenate((inds,d),axis=-1)
 
-    kernel = np.ones((5,5),np.uint8)
+    kernel = np.ones((3,3),np.uint8)
 
     #vfunc = np.vectorize(fu.unproject_to_local,signature="(4),(4,4),(4,4)->(3)")
 
@@ -154,8 +167,14 @@ def overlay(i):
         #         output[row,col] = fu.unproject_to_local(g[row,col],tolocal,toworld,projmat,pr=pri)
 
         output = (np.around(255 * output[:,:,2::-1])).astype(np.uint8)
-        wr = os.path.join(abspath,"geom_{}_{}.png".format(i,hue))
+        wr = os.path.join(write_path,"geom_{}_{}.png".format(i,hue))
         cv2.imwrite(wr,output)
+
+        masked = cv2.bitwise_and(image,image,mask=mask)
+        wr = os.path.join(write_path,"img_{}_{}.png".format(i,hue))
+        cv2.imwrite(wr,masked)
+
+
         
 
 
@@ -172,7 +191,7 @@ indices_lists = np.array_split(indices, num_procs)
 
 processes = []
 
-print(indices_lists)
+#print(indices_lists)
 
 for ilist in indices_lists:
     processes.append( Process(target=iterOverlay, args=(ilist,)) )
