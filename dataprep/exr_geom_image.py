@@ -23,6 +23,31 @@ args = parser.parse_args()
 with open(args.path) as json_file:
     data = json.load(json_file)
 
+
+hues_objdata = {}
+
+for entry in data["ids"][1:]:
+
+    objentry = data["objects"][data["ids"][entry]]
+
+    l2w = fu.matrix_from_string(objentry["modelmat"])
+    w2l = np.linalg.inv(l2w)
+
+    bbl = np.array(objentry["bbl"])
+    bbh = np.array(objentry["bbh"])
+
+    dims = bbh - bbl
+
+    info = {}
+    info["w2l"] = w2l
+    info["lows"] = bbl
+    info["dims"] = dims
+
+    hues_objdata[entry] = info
+
+
+
+
 abspath = os.path.abspath(args.path)
 abspath = abspath.replace(abspath.split("/")[-1],"")
 #abspath = abspath.replace(abspath.split("/")[-2],"")[0:-1]
@@ -95,9 +120,12 @@ def separate(maskpath):
 def overlay(i):
 
     print(i)
+
+    viewmat = fu.matrix_from_string(data["viewmats"][i])
     
     imgname = "{}.png".format(i)
-    imgpath = os.path.join(abspath,imgname) 
+    imgpath = os.path.join(abspath,imgname)
+
     maskpath = os.path.join(abspath,"mask_{}.png".format(i))
 
     depthpath = os.path.join(abspath,"depth_{}.npy".format(i))
@@ -118,9 +146,6 @@ def overlay(i):
 
     kernel = np.ones((3,3),np.uint8)
 
-    #vfunc = np.vectorize(fu.unproject_to_local,signature="(4),(4,4),(4,4)->(3)")
-
-    masks = separate(maskpath)
     verts = []
     p=False
 
@@ -138,8 +163,6 @@ def overlay(i):
 
         studs = np.array(studs,dtype=np.float32)
 
-        modelmat = fu.matrix_from_string(data["objects"][objname]["modelmat"])
-        viewmat = fu.matrix_from_string(data["viewmats"][i])
 
         #fu.toProjCoords(studs,modelmat,viewmat,projmat)
 
@@ -156,7 +179,7 @@ def overlay(i):
 
         #output = np.zeros((512,512,4),dtype=np.float32)
 
-        output = np.apply_along_axis(func1d=fu.unproject_to_local, axis=-1, arr=g, tolocal=tolocal, toworld=toworld, p=projmat)
+        output = np.apply_along_axis(func1d=fu.unproject_to_local, axis=-1, arr=g, infodict=hues_objdata, toworld=toworld, p=projmat)
 
         # for row in range(512):
         #     for col in range(512):

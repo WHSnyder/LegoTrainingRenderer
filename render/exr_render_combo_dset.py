@@ -14,7 +14,7 @@ bpy.context.scene.update()
 
 
 
-runs = 50
+runs = 3
 classes = ["Wing","Pole","Brick","Engine","Slope"]
 
 
@@ -28,7 +28,9 @@ objs = []
 for obj in bpy.context.selected_objects:
     if obj.name !="Table":
         objs.append(obj)
-
+        #if "WingR" in obj.name:
+            
+            
 
 
 print("Begining.....\n")
@@ -38,12 +40,12 @@ timestart = millis()
 random.seed()
 
 
-mode = "exr"
+mode = "sample"
 num = 0
-write_path = "/Users/will/projects/legoproj/data/{}_dset_{}/".format(mode,num)
+write_path = "/home/will/projects/legoproj/data/{}_dset_{}/".format(mode,num)
 while os.path.exists(write_path):
     num += 1
-    write_path = "/Users/will/projects/legoproj/data/{}_dset_{}/".format(mode,num)
+    write_path = "/home/will/projects/legoproj/data/{}_dset_{}/".format(mode,num)
 os.mkdir(write_path)
 
 
@@ -57,7 +59,7 @@ scene_objs = bpy.data.objects
 camera = bpy.data.objects['Camera']
 
 
-imgsdir = "/Users/will/projects/legotrain/surface_images/"
+imgsdir = "/home/will/projects/training/surface_images/"
 imgpaths = os.listdir(imgsdir)
 imgs = []
 
@@ -105,15 +107,22 @@ for i in range(0,len(matnames)):
     mats.append(mat)
 
 
-
 scenedata = {}
 scenedata["objects"] = {}
 scenedata["dataroot"] = write_path
 
+
 for obj in objs:
+
     objdata = {}
     objdata["modelmat"] = str(obj.matrix_world)
+
+    objdata["bbl"] = list(obj.bound_box[0])
+    objdata["bbh"] = list(obj.bound_box[-2])
+
     scenedata["objects"][obj.name] = objdata
+
+
 
 bpy.context.scene.update()
 
