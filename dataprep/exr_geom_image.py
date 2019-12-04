@@ -10,7 +10,7 @@ import random
 
 random.seed()
 
-sys.path.append("/Users/will/projects/legoproj")
+sys.path.append("/home/will/projects/legoproj")
 
 import cvscripts
 from cvscripts import feature_utils as fu
@@ -39,9 +39,14 @@ def getClass(objname):
 def getObjFromHue(hue):
     hue = int(round(hue/5))
     name = data["ids"][str(hue)]
-    if ("Engine" in name) or ("Pole" in name):
-        return None
-    return name
+    #if ("Engine" in name) or ("Pole" in name):
+    #    return None
+    #return name
+
+    if "WingL" in name:
+        return name
+    return None
+
 
 
 def separate(maskpath):
@@ -73,8 +78,9 @@ def separate(maskpath):
     return maskdict
 
 
+
 def overlay(i):
-    print("wow")
+
     print(i)
     
     imgname = "{}.png".format(i)
@@ -89,17 +95,25 @@ def overlay(i):
     studmask = np.zeros((512,512),dtype=np.uint8)
     image = cv2.imread(imgpath)
 
+    rows = np.arange(512)
+    cols = np.arange(512)
+
+    r,c = np.meshgrid(rows,cols)
+    inds = np.stack((c,r),axis=-1).astype(np.float32)
+    d = np.reshape(depthmap,(512,512,1))
+    f = np.concatenate((inds,d),axis=-1)
+
+    kernel = np.ones((5,5),np.uint8)
+
+    #vfunc = np.vectorize(fu.unproject_to_local,signature="(4),(4,4),(4,4)->(3)")
+
     masks = separate(maskpath)
     verts = []
     p=False
 
-    print("ho")
-
     for hue in masks:
 
         objname = getObjFromHue(hue)
-        print("lol")
-
         
         if objname:
             objclass = objname.split(".")[0]
@@ -114,21 +128,51 @@ def overlay(i):
         modelmat = fu.matrix_from_string(data["objects"][objname]["modelmat"])
         viewmat = fu.matrix_from_string(data["viewmats"][i])
 
-        fu.toProjCoords(studs,modelmat,viewmat,projmat)
+        #fu.toProjCoords(studs,modelmat,viewmat,projmat)
 
-overlay(2)
-"""
+        #screenverts = fu.verts_to_screen(modelmat, viewmat, projmat, studs)
+        #screenverts[:,0:2] = fu.toNDC(screenverts[:,0:2], (512,512))
+
+        toworld = np.linalg.inv(viewmat)
+        tolocal = np.linalg.inv(modelmat)
+
+        mask = cv2.erode(masks[hue],kernel,iterations=1)
+        mask = np.reshape(mask,(512,512,1))
+        g = np.concatenate((f,mask),axis=-1)
+        #print(g.shape)
+
+        #output = np.zeros((512,512,4),dtype=np.float32)
+
+        output = np.apply_along_axis(func1d=fu.unproject_to_local, axis=-1, arr=g, tolocal=tolocal, toworld=toworld, p=projmat)
+
+        # for row in range(512):
+        #     for col in range(512):
+        #         #print(col)
+        #         pri=False
+        #         if (col - row)%8 == 0:
+        #             pri=True
+        #         output[row,col] = fu.unproject_to_local(g[row,col],tolocal,toworld,projmat,pr=pri)
+
+        output = (np.around(255 * output[:,:,2::-1])).astype(np.uint8)
+        wr = os.path.join(abspath,"geom_{}_{}.png".format(i,hue))
+        cv2.imwrite(wr,output)
+        
+
+
+
 def iterOverlay(indices):
     for ind in indices:
         overlay(ind)
 
 
-indices = np.arange(data["runs"]) if args.num is None else [args.num] 
+indices = np.arange(data["runs"]) if args.num is None else np.arange(args.num) 
 cores = mp.cpu_count()
 num_procs = 1 if len(indices) < cores else cores
 indices_lists = np.array_split(indices, num_procs)
 
 processes = []
+
+print(indices_lists)
 
 for ilist in indices_lists:
     processes.append( Process(target=iterOverlay, args=(ilist,)) )
@@ -138,4 +182,3 @@ for process in processes:
 
 for process in processes:
     process.join()
-"""
