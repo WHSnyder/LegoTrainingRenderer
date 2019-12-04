@@ -14,7 +14,7 @@ bpy.context.scene.update()
 
 
 
-runs = 3
+runs = 20
 classes = ["Wing","Pole","Brick","Engine","Slope"]
 
 

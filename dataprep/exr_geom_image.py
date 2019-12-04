@@ -26,7 +26,10 @@ with open(args.path) as json_file:
 
 hues_objdata = {}
 
-for entry in data["ids"][1:]:
+for entry in data["ids"]:
+
+    if entry == "0":
+        continue
 
     objentry = data["objects"][data["ids"][entry]]
 
@@ -43,14 +46,19 @@ for entry in data["ids"][1:]:
     info["lows"] = bbl
     info["dims"] = dims
 
-    hues_objdata[entry] = info
+    hues_objdata[int(entry)] = info
 
+
+rows = np.arange(512)
+cols = np.arange(512)
+
+r,c = np.meshgrid(rows,cols)
+inds = np.stack((c,r),axis=-1).astype(np.float32)
 
 
 
 abspath = os.path.abspath(args.path)
 abspath = abspath.replace(abspath.split("/")[-1],"")
-#abspath = abspath.replace(abspath.split("/")[-2],"")[0:-1]
 
 
 
@@ -77,13 +85,8 @@ def getClass(objname):
 def getObjFromHue(hue):
     hue = int(round(hue/5))
     name = data["ids"][str(hue)]
-    #if ("Engine" in name) or ("Pole" in name):
-    #    return None
-    #return name
-
-    if "WingL" in name:
-        return name
-    return None
+    
+    return name
 
 
 
@@ -121,85 +124,38 @@ def overlay(i):
 
     print(i)
 
+    tag = "{:0>4}".format(i)
+
     viewmat = fu.matrix_from_string(data["viewmats"][i])
+    toworld = np.linalg.inv(viewmat)
     
-    imgname = "{}.png".format(i)
+    imgname = "{}_img.png".format(tag)
     imgpath = os.path.join(abspath,imgname)
 
-    maskpath = os.path.join(abspath,"mask_{}.png".format(i))
+    maskpath = os.path.join(abspath,"{}_masks.png".format(tag))
+    mask = cv2.imread(maskpath)
+    mask = cv2.cvtColor(mask,cv2.COLOR_BGR2HSV)[:,:,0]
 
-    depthpath = os.path.join(abspath,"depth_{}.npy".format(i))
+    depthpath = os.path.join(abspath,"{}_npdepth.npy".format(tag))
     depthmap = np.load(depthpath,allow_pickle=False)
 
     projmat = fu.matrix_from_string(data["projection"])
 
-    studmask = np.zeros((512,512),dtype=np.uint8)
     image = cv2.imread(imgpath)
 
-    rows = np.arange(512)
-    cols = np.arange(512)
-
-    r,c = np.meshgrid(rows,cols)
-    inds = np.stack((c,r),axis=-1).astype(np.float32)
     d = np.reshape(depthmap,(512,512,1))
     f = np.concatenate((inds,d),axis=-1)
 
     kernel = np.ones((3,3),np.uint8)
 
-    verts = []
-    p=False
+    mask = np.reshape(mask,(512,512,1))
+    g = np.concatenate((f,mask),axis=-1)
 
-    for hue in masks:
+    output = np.apply_along_axis(func1d=fu.unproject_to_local, axis=-1, arr=g, infodict=hues_objdata, toworld=toworld, p=projmat)
 
-        objname = getObjFromHue(hue)
-        
-        if objname:
-            objclass = objname.split(".")[0]
-            studs = fu.get_object_studs(objclass)
-            for stud in studs:
-                stud.append(1.0)
-        else:
-            continue
-
-        studs = np.array(studs,dtype=np.float32)
-
-
-        #fu.toProjCoords(studs,modelmat,viewmat,projmat)
-
-        #screenverts = fu.verts_to_screen(modelmat, viewmat, projmat, studs)
-        #screenverts[:,0:2] = fu.toNDC(screenverts[:,0:2], (512,512))
-
-        toworld = np.linalg.inv(viewmat)
-        tolocal = np.linalg.inv(modelmat)
-
-        mask = cv2.erode(masks[hue],kernel,iterations=1)
-        mask = np.reshape(mask,(512,512,1))
-        g = np.concatenate((f,mask),axis=-1)
-        #print(g.shape)
-
-        #output = np.zeros((512,512,4),dtype=np.float32)
-
-        output = np.apply_along_axis(func1d=fu.unproject_to_local, axis=-1, arr=g, infodict=hues_objdata, toworld=toworld, p=projmat)
-
-        # for row in range(512):
-        #     for col in range(512):
-        #         #print(col)
-        #         pri=False
-        #         if (col - row)%8 == 0:
-        #             pri=True
-        #         output[row,col] = fu.unproject_to_local(g[row,col],tolocal,toworld,projmat,pr=pri)
-
-        output = (np.around(255 * output[:,:,2::-1])).astype(np.uint8)
-        wr = os.path.join(write_path,"geom_{}_{}.png".format(i,hue))
-        cv2.imwrite(wr,output)
-
-        masked = cv2.bitwise_and(image,image,mask=mask)
-        wr = os.path.join(write_path,"img_{}_{}.png".format(i,hue))
-        cv2.imwrite(wr,masked)
-
-
-        
-
+    output = (np.around(255 * output[:,:,2::-1])).astype(np.uint8)
+    wr = os.path.join(abspath,"{}_geom.png".format(tag))
+    cv2.imwrite(wr,output)
 
 
 def iterOverlay(indices):
@@ -214,7 +170,7 @@ indices_lists = np.array_split(indices, num_procs)
 
 processes = []
 
-#print(indices_lists)
+#indices_lists=np.array([[1]])
 
 for ilist in indices_lists:
     processes.append( Process(target=iterOverlay, args=(ilist,)) )
