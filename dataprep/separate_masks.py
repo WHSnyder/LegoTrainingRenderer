@@ -74,10 +74,12 @@ links = {}
 for i in range(data["runs"]):
     
     print(i)
+
+    tag = "{:0>4}".format(i)
     
-    imgname = "{}.png".format(i)
+    imgname = "{}_a.png".format(tag)
     imgpath = os.path.join(abspath,imgname) 
-    maskpath = os.path.join(abspath,"mask_{}.png".format(i))
+    maskpath = os.path.join(abspath,"{}_masks.png".format(tag))
     
     masks = separate(imgpath,maskpath)
 
@@ -91,7 +93,7 @@ for i in range(data["runs"]):
         objname = getObjFromHue(hue)
         objclass = data["objects"][objname]["class"]
 
-        maskname = "{}_{}_{}_mask.png".format(i,j,objclass)
+        maskname = "{}_{}_{}_mask.png".format(tag,j,objclass)
         links[imgname].append({"class":objclass,"file":maskname})
 
         wmask = os.path.join(write_path,maskname)
