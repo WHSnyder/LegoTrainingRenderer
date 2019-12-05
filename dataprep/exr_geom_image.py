@@ -31,7 +31,10 @@ for entry in data["ids"]:
     if entry == "0":
         continue
 
-    objentry = data["objects"][data["ids"][entry]]
+    name = data["ids"][entry]
+    objentry = data["objects"][name]
+
+    #print(objentry)
 
     l2w = fu.matrix_from_string(objentry["modelmat"])
     w2l = np.linalg.inv(l2w)
@@ -41,10 +44,15 @@ for entry in data["ids"]:
 
     dims = bbh - bbl
 
+    if "WingL.002" in name:
+        print(dims)
+
     info = {}
     info["w2l"] = w2l
     info["lows"] = bbl
+
     info["dims"] = dims
+    info["name"] = data["ids"][entry]
 
     hues_objdata[int(entry)] = info
 
@@ -62,12 +70,12 @@ abspath = abspath.replace(abspath.split("/")[-1],"")
 
 
 
-num=0
-write_path = "/home/will/projects/legoproj/data/{}_geom/".format(num)
-while os.path.exists(write_path):
-    num += 1
-    write_path = "/home/will/projects/legoproj/data/{}_geom/".format(num)
-os.mkdir(write_path)
+#num=0
+#write_path = "/home/will/projects/legoproj/data/{}_geom/".format(num)
+#while os.path.exists(write_path):
+#    num += 1
+#    write_path = "/home/will/projects/legoproj/data/{}_geom/".format(num)
+#os.mkdir(write_path)
 
 
 
@@ -129,8 +137,8 @@ def overlay(i):
     viewmat = fu.matrix_from_string(data["viewmats"][i])
     toworld = np.linalg.inv(viewmat)
     
-    imgname = "{}_img.png".format(tag)
-    imgpath = os.path.join(abspath,imgname)
+    #imgname = "{}_img.png".format(tag)
+    #imgpath = os.path.join(abspath,imgname)
 
     maskpath = os.path.join(abspath,"{}_masks.png".format(tag))
     mask = cv2.imread(maskpath)
@@ -141,7 +149,7 @@ def overlay(i):
 
     projmat = fu.matrix_from_string(data["projection"])
 
-    image = cv2.imread(imgpath)
+    #image = cv2.imread(imgpath)
 
     d = np.reshape(depthmap,(512,512,1))
     f = np.concatenate((inds,d),axis=-1)

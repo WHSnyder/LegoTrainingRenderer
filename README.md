@@ -8,10 +8,10 @@ Includes a basic scene with a tracked camera, scripts for rendering images, norm
 ![alt text](./repo_images/renders.gif "Rendering")
 
 
-![alt text](./repo_images/1_a.png "render1")  ![alt text](./repo_images/mask_1.png "mask1")  ![alt text](./repo_images/normals_1.png "normals1")  ![alt text](./repo_images/mask1.gif "masks1")
+![alt text](./repo_images/0000_tst.gif "render1")  ![alt text](./repo_images/0001_tst.gif "mask1")  ![alt text](./repo_images/0002_tst.gif "normals1")  ![alt text](./repo_images/0003_tst.gif "masks1")
 
 
-![alt text](./repo_images/10_a.png "render10")  ![alt text](./repo_images/mask_10.png "mask10")  ![alt text](./repo_images/normals_10.png "normals10")  ![alt text](./repo_images/mask10.gif "masks10")
+![alt text](./repo_images/mask1.gif "mask1")  ![alt text](./repo_images/mask10.gif "mask10")
 
 
 ## Folders and Files:

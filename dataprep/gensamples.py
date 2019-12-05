@@ -44,7 +44,7 @@ def parseEXRs(indices,basepath):
         name = name[0:4]
 
         img = (255*cv2.merge([b,g,r])).round().astype(np.uint8)
-        cv2.imwrite(os.path.join(base,"{}_img.png".format(name)),img)
+        cv2.imwrite(os.path.join(base,"{}_a.png".format(name)),img)
 
         #print(np.amax(d))
 
