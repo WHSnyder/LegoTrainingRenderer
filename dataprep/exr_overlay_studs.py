@@ -10,7 +10,7 @@ import random
 
 random.seed()
 
-sys.path.append("/Users/will/projects/legoproj")
+sys.path.append("/home/will/projects/legoproj")
 
 import cvscripts
 from cvscripts import feature_utils as fu
@@ -55,6 +55,7 @@ def separate(maskpath):
     hist = cv2.calcHist([hsvmask],[0],None,[180],[0,179])
     
     hues=[]
+
     for j,e in enumerate(hist):
         if e[0] > 500:
             hues.append(j)
@@ -73,15 +74,18 @@ def separate(maskpath):
     return maskdict
 
 
+
 def overlay(i):
 
     print(i)
-    
-    imgname = "{}.png".format(i)
-    imgpath = os.path.join(abspath,imgname) 
-    maskpath = os.path.join(abspath,"mask_{}.png".format(i))
+    tag = "{:0>4}".format(i)
 
-    depthpath = os.path.join(abspath,"depth_{}.npy".format(i))
+    imgname = "{}_a.png".format(tag)
+    imgpath = os.path.join(abspath,imgname) 
+
+    maskpath = os.path.join(abspath,"{}_masks.png".format(tag))
+
+    depthpath = os.path.join(abspath,"{}_npdepth.npy".format(tag))
     depthmap = np.load(depthpath,allow_pickle=False)
 
     projmat = fu.matrix_from_string(data["projection"])
@@ -118,21 +122,21 @@ def overlay(i):
         screenverts[:,0:2] = fu.toNDC(screenverts[:,0:2], (512,512))
         visibleverts = [v for v in screenverts if depthmap[int(v[1]),int(v[0])] - abs(v[2]) > -0.05]
             
+
         if visibleverts:
+            
             for v in visibleverts:
+                
                 circle_rad = fu.get_circle_length(modelmat,viewmat,projmat,studs[int(v[3])])
                 x=int(v[0])
                 y=int(v[1])
-                cv2.circle(studmask, (x,y), circle_rad, (255,20,20),-1)
-            cv2.bitwise_and(masks[hue],image,mask=masks[hue])
+                cv2.circle(image, (x,y), circle_rad, (20,20,250),3)
 
+            #cv2.bitwise_and(studmask,image,mask=masks[hue])
 
-<<<<<<< HEAD
-    print(abspath)
-    cv2.imwrite(os.path.join(abspath,"studs_{}.png".format(i)),studmask)
-=======
-    cv2.imwrite(os.path.join(abspath,"studs_{}.png".format(i)),image)
->>>>>>> 8e92a49fa39e4fb5bc3a1073b1e27f0757ecd654
+    #print(abspath)
+    cv2.imwrite(os.path.join(abspath,"{}_studs.png".format(tag)),image)
+
 
 
 def iterOverlay(indices):
@@ -141,14 +145,13 @@ def iterOverlay(indices):
 
 
 indices = np.arange(data["runs"]) if args.num is None else [args.num] 
-print(indices)
 cores = mp.cpu_count()
 num_procs = 1 if len(indices) < cores else cores
 indices_lists = np.array_split(indices, num_procs)
-print(indices_lists)
+#print(indices_lists)
 
 processes = []
-'''
+
 for ilist in indices_lists:
     processes.append( Process(target=iterOverlay, args=(ilist,)) )
 
@@ -157,5 +160,3 @@ for process in processes:
 
 for process in processes:
     process.join()
-'''
-iterOverlay(indices)

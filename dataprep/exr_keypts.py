@@ -10,11 +10,8 @@ import random
 
 random.seed()
 
-<<<<<<< HEAD
-sys.path.append("/Users/will/projects/legoproj")
-=======
 sys.path.append("/home/will/projects/legoproj")
->>>>>>> 8e92a49fa39e4fb5bc3a1073b1e27f0757ecd654
+
 
 import cvscripts
 from cvscripts import feature_utils as fu
@@ -43,11 +40,8 @@ def getClass(objname):
 def getObjFromHue(hue):
     hue = int(round(hue/5))
     name = data["ids"][str(hue)]
-<<<<<<< HEAD
+
     if ("Pole" in name):
-=======
-    if ("Engine" in name) or ("Pole" in name):
->>>>>>> 8e92a49fa39e4fb5bc3a1073b1e27f0757ecd654
         return name
     return None
 

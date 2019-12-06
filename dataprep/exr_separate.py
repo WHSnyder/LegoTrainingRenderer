@@ -52,7 +52,7 @@ def parseEXRs(indices,basepath):
         dnormed = d/dmax
         dnormed[dnormed>1.0] = 1.0
 
-        cv2.imwrite(os.path.join(base,"{}_depth.png".format(name)), (255 * dnormed).round().astype(np.uint8) )
+        #cv2.imwrite(os.path.join(base,"{}_depth.png".format(name)), (255 * dnormed).round().astype(np.uint8) )
         
         np.save(os.path.join(base,"{}_npdepth.npy".format(name)),d)
 
