@@ -14,7 +14,7 @@ bpy.context.scene.update()
 
 
 
-runs = 20
+runs = 500
 classes = ["Wing","Pole","Brick","Engine","Slope"]
 
 
@@ -40,7 +40,7 @@ timestart = millis()
 random.seed()
 
 
-mode = "sample"
+mode = "kpts"
 num = 0
 write_path = "/home/will/projects/legoproj/data/{}_dset_{}/".format(mode,num)
 while os.path.exists(write_path):

@@ -44,8 +44,8 @@ for entry in data["ids"]:
 
     dims = bbh - bbl
 
-    if "WingL.002" in name:
-        print(dims)
+    #if "WingL.002" in name:
+    #    print(dims)
 
     info = {}
     info["w2l"] = w2l

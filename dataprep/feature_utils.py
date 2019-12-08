@@ -72,7 +72,8 @@ def verts_to_screen(model,view,frust,verts,filter=True):
         screenvert = screenvert/screenvert[3]
 
         if filter and (abs(screenvert[0]) > 1 or abs(screenvert[1]) > 1):
-            continue
+            return None
+            #continue
         
         screenvert[0:2] = (screenvert[0:2] + 1)/2
         screenvert[2] = depth
@@ -145,18 +146,12 @@ def unproject_to_local(data,infodict,toworld,p,pr=False):
 
     worldPos = np.matmul(toworld,viewPos)
     localPos = np.matmul(tolocal,worldPos)
-    #localPos = localPos/localPos[3]
 
     localPos[0] = (localPos[0] - lx)/dx 
     localPos[1] = (localPos[1] - ly)/dy
     localPos[2] = (localPos[2] - lz)/dz
 
     localPos = np.absolute( localPos )
-
-    #if data[0] == 256:
-    #    print(localPos)
-        #rint(mask)
-        #print(localPos)
 
     return np.clip(localPos,0.0,1.0)
 

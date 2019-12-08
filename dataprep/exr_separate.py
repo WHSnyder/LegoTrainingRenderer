@@ -39,7 +39,9 @@ def parseEXRs(indices,basepath):
 
         dw = oe.InputFile(fullpath)
         #print(dw.header())
-        [b,g,r,d,m,nx,ny,nz] = getEXRChannels(dw,["image.B","image.G","image.R","depth.V","masks.V","normal.X","normal.Y","normal.Z"])
+        #[b,g,r,d,m,nx,ny,nz] = getEXRChannels(dw,["image.B","image.G","image.R","depth.V","masks.V","normal.X","normal.Y","normal.Z"])
+
+        [b,g,r,d,m,nx,ny,nz] = getEXRChannels(dw,["image.B","image.G","image.R","depth.R","masks.R","normal.R","normal.B","normal.G"])
 
         name = name[0:4]
 
@@ -54,7 +56,7 @@ def parseEXRs(indices,basepath):
 
         #cv2.imwrite(os.path.join(base,"{}_depth.png".format(name)), (255 * dnormed).round().astype(np.uint8) )
         
-        np.save(os.path.join(base,"{}_npdepth.npy".format(name)),d)
+        #np.save(os.path.join(base,"{}_npdepth.npy".format(name)),d)
 
         h = 5 * (m.round().astype(np.uint8))
         mask = h > 0
@@ -65,7 +67,7 @@ def parseEXRs(indices,basepath):
         cv2.imwrite(os.path.join(base,"{}_masks.png".format(name)),mask)
 
         normals = np.absolute( (255*cv2.merge([nx,ny,nz])[:,:,2::-1]).round() ).astype(np.uint8)
-        cv2.imwrite(os.path.join(base,"{}_normals.png".format(name)),normals)
+        #cv2.imwrite(os.path.join(base,"{}_normals.png".format(name)),normals)
 
         #normals = 
       
