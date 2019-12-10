@@ -108,7 +108,7 @@ def fromNDC(verts,dims):
     return newverts
 
 
-def unproject_to_local(data,infodict,toworld,p,pr=False):
+def unproject_to_local(data,infodict,toworld,p,dims=(256,256),pr=False):
 
     mask = int(round(data[3]/5))
 
@@ -123,7 +123,7 @@ def unproject_to_local(data,infodict,toworld,p,pr=False):
     depth = data[2]
 
     ndcs = data[0:2]
-    ndcs = fromNDC([ndcs[::-1]],(512,512))[0]
+    ndcs = fromNDC([ndcs[::-1]],dims)[0]
 
     ndc_y = ndcs[0]
     ndc_x = ndcs[1]

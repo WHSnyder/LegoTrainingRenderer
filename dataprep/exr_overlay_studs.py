@@ -8,6 +8,8 @@ import multiprocessing as mp
 from multiprocessing import Process
 import random
 
+from scipy.stats import multivariate_normal as mv
+
 random.seed()
 
 #sys.path.append("/home/will/projects/legoproj")
@@ -27,7 +29,7 @@ with open(args.path) as json_file:
 abspath = os.path.abspath(args.path)
 abspath = abspath.replace(abspath.split("/")[-1],"")
 
-write_path = os.path.join(abspath,"kpts")
+write_path = os.path.join(abspath,"kpts_total")
 
 if not os.path.exists(write_path):
     os.mkdir(write_path)
@@ -47,8 +49,10 @@ def getClass(objname):
 def getObjFromHue(hue):
     hue = int(round(hue/5))
     name = data["ids"][str(hue)]
-    if ("WingR" in name):
+    if ("WingR" in name or "WingL" in name):
         return name
+    #if "Slope" in name:
+    #    return name
     return None
 
 
@@ -82,6 +86,15 @@ def separate(maskpath):
     return maskdict
 
 
+def generate_heatmap(inp,sigma):
+    #heatmap[int(pt[1])][int(pt[0])] = 1
+    # heatmap = 
+    # m = np.amax(heatmap)
+    # heatmap = heatmap/m
+    # return heatmap
+    return cv2.blur(inp,sigma)
+
+
 
 def overlay(i):
 
@@ -95,14 +108,19 @@ def overlay(i):
 
     maskpath = os.path.join(abspath,"{}_masks.png".format(tag))
 
-    #depthpath = os.path.join(abspath,"{}_npdepth.npy".format(tag))
-    #depthmap = np.load(depthpath,allow_pickle=False)
+    depthpath = os.path.join(abspath,"{}_npdepth.npy".format(tag))
+    depthmap = np.load(depthpath,allow_pickle=False)
 
     projmat = fu.matrix_from_string(data["projection"])
 
     masks = separate(maskpath)
     verts = []
     p=False
+
+    #totalimg = np.zeros((256,256)).astype(np.uint8)
+
+    outimg = np.zeros((256,256)).astype(np.uint8)
+
 
     for hue in masks:
 
@@ -121,9 +139,21 @@ def overlay(i):
 
         #studmask = np.zeros((512,512),dtype=np.uint8)
         #maskedimg = np.zeros((512,512,3),dtype=np.uint8)
-        
-        studs = [[-.9,1.8,0.0,1.0], [-.9,-1.8,0.0,1.0], [-0.0,-1.8,0.0,1.0], [.9,.9,0.0,1.0], [.9,1.8,0.0,1.0]]
+        inds={0:30,1:60,2:90,3:120,4:150}
+        if "WingR" in objname:
+            studs = [[-.94,1.86,0.0,1.0], [-.94,-1.86,0.0,1.0], [-0.0,-1.86,0.0,1.0], [.94,1.86,0.0,1.0]]#[.9,.9,0.0,1.0], [.9,1.8,0.0,1.0]]
+        elif "WingL" in objname:
+            studs = [[-.94,-1.86,0.03,1.0] , [-.94,1.86,0.03,1.0], [-0.0,1.86,0.03,1.0], [.94,-1.86,0.03,1.0]]#[.9,-.9,0.032,1.0], [.9,-1.8,0.032,1.0]]
+        elif 
+        """if "Slope1" in objname:
+            studs = [[0.0,0.0,0.95487,1.0]]
+        elif "Slope3" in objname:
+            studs = [[0.0,0.579934,1.17411,1.0],[0.0,-0.579934,1.17411,1.0]]
+        else:
+            studs = [[-0.579934,-0.579934,0.579934,1.0],[-0.579934,0.579934,0.579934,1.0],[0.579934,-0.579934,0.579934,1.0],[0.579934,0.579934,0.579934,1.0]]
+        """
         studs = np.array(studs,dtype=np.float32)
+        #studs[0:3] = .95 * studs[0:3]
 
         modelmat = fu.matrix_from_string(data["objects"][objname]["modelmat"])
         viewmat = fu.matrix_from_string(data["viewmats"][i])
@@ -133,53 +163,51 @@ def overlay(i):
         if screenverts is None:
             continue
 
-        if screenverts.size == 0:
-            continue
-
         screenverts[:,0:2] = fu.toNDC(screenverts[:,0:2], (512,512))
-        visibleverts = screenverts[:,0:2] #[v for v in screenverts if depthmap[int(v[1]),int(v[0])] - abs(v[2]) > -0.05]
-        
-        """if visibleverts is not None:
-            
-            for v in visibleverts:
-                
-                circle_rad = 4 #fu.get_circle_length(modelmat,viewmat,projmat,studs[int(v[3])])
-                x=int(v[0])
-                y=int(v[1])
-                cv2.circle(studmask, (x,y), circle_rad, (255,255,255),-1)
-        """
-        #cv2.imwrite(os.path.join(write_path,"{}_studs.png".format(j)), studmask)
+        visibleverts = screenverts# [v for v in screenverts if depthmap[int(v[1]),int(v[0])] - abs(v[2]) > -0.05]
 
-        maskedimg = cv2.bitwise_and(image,image,mask=masks[hue])
-        cv2.imwrite(os.path.join(write_path,"{}_masked.png".format(counter)), cv2.resize(maskedimg, (256,256), interpolation=cv2.INTER_LINEAR))
+        #maskedimg = cv2.bitwise_and(image,image,mask=masks[hue])
+        #cv2.imwrite(os.path.join(write_path,"{}_{}_masked.png".format(tag,counter)), cv2.resize(maskedimg, (256,256), interpolation=cv2.INTER_LINEAR))
 
-        outimg = np.zeros((256,256)).astype(np.uint8)
+        #outimg = np.zeros((256,256,3)).astype(np.uint8)
+        #outimg = np.zeros((256,256)).astype(np.uint8)
 
         finalverts = []
 
-        for k in range(5):
+        for v in visibleverts:
+            x= int(v[0])
+            y=int(v[1])
+            val = masks[hue][y,x]
 
-            l = k+1 if k < 4 else 0
-            cur,nex = visibleverts[k]/2,visibleverts[l]/2
+            x= int(v[0]/2)
+            y=int(v[1]/2)
+            if val > 0:
+                pos = np.dstack(np.mgrid[0:256:1, 0:256:1])
+                rv = mv(mean=[y,x], cov=7)
+                pd = rv.pdf(pos)
+                
+                img = pd/np.amax(pd)
+                gimg = np.rint(255 * img)
+                gimg = gimg.astype(np.uint8)
 
-            x,y=int(cur[0]),int(cur[1])
-            xn,yn = int(nex[0]),int(nex[1])
+                #cv2.circle(outimg, (x,y), 3, (255,255,255),-1)
+                #outimg[y,x] = 255
+                outimg = outimg + gimg
+                #totalimg = totalimg + gimg
+            #coord = np.array([x,y],dtype=np.float32)
+            #else:
+            #    coord = np.array([np.nan,np.nan])
+            #finalverts.append(coord)
 
-            cv2.circle(outimg, (x,y), 4, (255,255,255),-1)
-            cv2.line(outimg, (x,y), (xn,yn), (255,255,255), 2)
-
-        # for v in visibleverts:
-        #     val = masks[hue][int(v[1]),int(v[0])]
-        #     r = v if val > 0 else [np.nan,np.nan]
-        #     finalverts.append(r)
-
-        #f = np.array(finalverts)/2
+        #f = np.array(finalverts)
         #print(f.shape)
-        #np.save(os.path.join(write_path,"{}_studs.npy".format(counter)), f)
-        cv2.imwrite(os.path.join(write_path,"{}_outline.png".format(counter)), outimg)
+        #np.save(os.path.join(write_path,"{}_kpts.npy".format(counter)), f)
 
+        #cv2.imwrite(os.path.join(write_path,"{}_{}_kpts.png".format(tag,counter)), outimg)
+        #counter += 1
+    cv2.imwrite(os.path.join(write_path,"{}_img.png".format(tag)), image)
+    cv2.imwrite(os.path.join(write_path,"{}_kpts.png".format(tag)), outimg)
 
-        counter += 1
 
 
 

@@ -14,8 +14,8 @@ bpy.context.scene.update()
 
 
 
-runs = 500
-classes = ["Wing","Pole","Brick","Engine","Slope"]
+runs = 200
+classes = ["Wing","Pole","Brick","Engine","Slope","Cockpit"]
 
 
 def getClass(name):
@@ -218,9 +218,9 @@ for x in range(runs):
     matz = random.sample(mats,random.randint(1,math.floor(len(mats)/1.2)))
     objectz = getObjSubset(objslice,matz)
 
-    cx = random.randint(5,6) * -1 if random.randint(0,1) < 1 else 1
-    cy = random.randint(5,6) * -1 if random.randint(0,1) < 1 else 1
-    cz = random.randint(5,6)
+    cx = random.randint(4,6) * -1 if random.randint(0,1) < 1 else 1
+    cy = random.randint(4,6) * -1 if random.randint(0,1) < 1 else 1
+    cz = random.randint(4,6)
 
     camera.location = (cx,cy,cz)
 

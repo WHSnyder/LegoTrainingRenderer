@@ -10,10 +10,11 @@ import random
 
 random.seed()
 
-sys.path.append("/home/will/projects/legoproj")
+#sys.path.append("/home/will/projects/legoproj")
 
-import cvscripts
-from cvscripts import feature_utils as fu
+#import cvscripts
+#from cvscripts import feature_utils as fu
+import feature_utils as fu
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-p', '--path', dest='path',required=True,help='JSON data path?')
@@ -57,8 +58,8 @@ for entry in data["ids"]:
     hues_objdata[int(entry)] = info
 
 
-rows = np.arange(512)
-cols = np.arange(512)
+rows = np.arange(256)
+cols = np.arange(256)
 
 r,c = np.meshgrid(rows,cols)
 inds = np.stack((c,r),axis=-1).astype(np.float32)
@@ -68,16 +69,10 @@ inds = np.stack((c,r),axis=-1).astype(np.float32)
 abspath = os.path.abspath(args.path)
 abspath = abspath.replace(abspath.split("/")[-1],"")
 
+write_path = abspath + "geom"
 
-
-#num=0
-#write_path = "/home/will/projects/legoproj/data/{}_geom/".format(num)
-#while os.path.exists(write_path):
-#    num += 1
-#    write_path = "/home/will/projects/legoproj/data/{}_geom/".format(num)
-#os.mkdir(write_path)
-
-
+if not os.path.exists(write_path):
+    os.mkdir(write_path)
 
 
 classes = ["WingR","WingL","Brick","Pole"]
@@ -143,26 +138,30 @@ def overlay(i):
     maskpath = os.path.join(abspath,"{}_masks.png".format(tag))
     mask = cv2.imread(maskpath)
     mask = cv2.cvtColor(mask,cv2.COLOR_BGR2HSV)[:,:,0]
+    mask = cv2.resize(mask, (256,256), cv2.INTER_NEAREST)
 
     depthpath = os.path.join(abspath,"{}_npdepth.npy".format(tag))
     depthmap = np.load(depthpath,allow_pickle=False)
+
 
     projmat = fu.matrix_from_string(data["projection"])
 
     #image = cv2.imread(imgpath)
 
     d = np.reshape(depthmap,(512,512,1))
+    d = d[0::2,0::2]
+
     f = np.concatenate((inds,d),axis=-1)
 
     kernel = np.ones((3,3),np.uint8)
 
-    mask = np.reshape(mask,(512,512,1))
+    mask = np.reshape(mask,(256,256,1))
     g = np.concatenate((f,mask),axis=-1)
 
-    output = np.apply_along_axis(func1d=fu.unproject_to_local, axis=-1, arr=g, infodict=hues_objdata, toworld=toworld, p=projmat)
+    output = np.apply_along_axis(func1d=fu.unproject_to_local, axis=-1, arr=g, infodict=hues_objdata, toworld=toworld, p=projmat, dims=(256,256))
 
     output = (np.around(255 * output[:,:,2::-1])).astype(np.uint8)
-    wr = os.path.join(abspath,"{}_geom.png".format(tag))
+    wr = os.path.join(write_path,"{}_geom.png".format(tag))
     cv2.imwrite(wr,output)
 
 
