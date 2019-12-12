@@ -103,7 +103,7 @@ def separate(mask):
     
     hues=[]
     for j,e in enumerate(hist):
-        if e[0] > 500:
+        if e[0] > 20:
             hues.append(j)
 
     for hue in hues:
@@ -112,8 +112,8 @@ def separate(mask):
         threshed = cv2.medianBlur(threshed.astype(np.uint8), 3)
         threshed = cv2.dilate(threshed, kernel, iterations=1)
 
-        if np.sum(threshed) <= 255*100:
-            continue;
+        #if np.sum(threshed) <= 255*100:
+        #    continue;
 
         maskdict[hue] = threshed
 
