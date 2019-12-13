@@ -35,8 +35,6 @@ for entry in data["ids"]:
     name = data["ids"][entry]
     objentry = data["objects"][name]
 
-    #print(objentry)
-
     l2w = fu.matrix_from_string(objentry["modelmat"])
     w2l = np.linalg.inv(l2w)
 
@@ -44,9 +42,6 @@ for entry in data["ids"]:
     bbh = np.array(objentry["bbh"])
 
     dims = bbh - bbl
-
-    #if "WingL.002" in name:
-    #    print(dims)
 
     info = {}
     info["w2l"] = w2l
@@ -103,17 +98,17 @@ def separate(mask):
     
     hues=[]
     for j,e in enumerate(hist):
-        if e[0] > 20:
+        if e[0] > 100:
             hues.append(j)
 
     for hue in hues:
 
-        threshed = cv2.inRange(hsvmask, (hue-1,0,100), (hue+1,255,255))
+        threshed = cv2.inRange(hsvmask, (hue-1,2,100), (hue+1,255,255))
         threshed = cv2.medianBlur(threshed.astype(np.uint8), 3)
         threshed = cv2.dilate(threshed, kernel, iterations=1)
 
         #if np.sum(threshed) <= 255*100:
-        #    continue;
+            #continue;
 
         maskdict[hue] = threshed
 
@@ -157,12 +152,14 @@ def overlay(i):
     masks = separate(maskraw)
     mask = np.zeros((256,256)).astype(np.uint8)
 
+    kernel = np.ones((2,2),np.uint8)
+
     for hue in masks:
         objname = getObjFromHue(hue)
         if objname:
             objclass = objname.split(".")[0]
-            if objclass == "Pole":
-                mask += masks[hue]
+            if objclass == "Pole" or objclass == "Engine":
+                mask += cv2.erode(masks[hue],kernel,iterations = 1)
 
     #mask = cv2.inRange( mask, (0,2,2), (179,255,255) )
     output = cv2.bitwise_and(output,output,mask=mask)
