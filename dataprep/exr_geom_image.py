@@ -93,10 +93,8 @@ def getObjFromHue(hue):
 
 
 
-def separate(maskpath):
+def separate(mask):
     
-    mask = cv2.imread(maskpath)
-
     kernel = np.ones((2,2), np.uint8) 
     maskdict = {}
 
@@ -132,21 +130,16 @@ def overlay(i):
     viewmat = fu.matrix_from_string(data["viewmats"][i])
     toworld = np.linalg.inv(viewmat)
     
-    #imgname = "{}_img.png".format(tag)
-    #imgpath = os.path.join(abspath,imgname)
-
     maskpath = os.path.join(abspath,"{}_masks.png".format(tag))
     mask = cv2.imread(maskpath)
-    mask = cv2.cvtColor(mask,cv2.COLOR_BGR2HSV)[:,:,0]
-    mask = cv2.resize(mask, (256,256), cv2.INTER_NEAREST)
+    maskraw = cv2.resize(mask, (256,256), cv2.INTER_NEAREST)
+    mask = cv2.cvtColor(maskraw,cv2.COLOR_BGR2HSV)[:,:,0]
 
     depthpath = os.path.join(abspath,"{}_npdepth.npy".format(tag))
     depthmap = np.load(depthpath,allow_pickle=False)
 
-
     projmat = fu.matrix_from_string(data["projection"])
 
-    #image = cv2.imread(imgpath)
 
     d = np.reshape(depthmap,(512,512,1))
     d = d[0::2,0::2]
@@ -159,8 +152,21 @@ def overlay(i):
     g = np.concatenate((f,mask),axis=-1)
 
     output = np.apply_along_axis(func1d=fu.unproject_to_local, axis=-1, arr=g, infodict=hues_objdata, toworld=toworld, p=projmat, dims=(256,256))
-
     output = (np.around(255 * output[:,:,2::-1])).astype(np.uint8)
+
+    masks = separate(maskraw)
+    mask = np.zeros((256,256)).astype(np.uint8)
+
+    for hue in masks:
+        objname = getObjFromHue(hue)
+        if objname:
+            objclass = objname.split(".")[0]
+            if objclass == "Pole":
+                mask += masks[hue]
+
+    #mask = cv2.inRange( mask, (0,2,2), (179,255,255) )
+    output = cv2.bitwise_and(output,output,mask=mask)
+
     wr = os.path.join(write_path,"{}_geom.png".format(tag))
     cv2.imwrite(wr,output)
 
