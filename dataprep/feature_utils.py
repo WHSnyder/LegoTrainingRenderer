@@ -163,7 +163,7 @@ brickstuds = get_object_studs("Brick")
 wingrstuds = get_object_studs("WingR")
 
 def getCalibCorrs():
-    path = hf+"/will/projects/legoproj/utils/calib_data/calibdata.txt"
+    path = hf+"/will/projects/legoproj/cvscripts/calib_data/calibdata.txt"
 
     with open(path) as json_file:
         data = json.load(json_file)
