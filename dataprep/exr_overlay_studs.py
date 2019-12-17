@@ -57,12 +57,11 @@ def getObjFromHue(hue):
 
 
 def separate(maskpath):
-    
-    mask = cv2.imread(maskpath)
 
     kernel = np.ones((2,2), np.uint8) 
     maskdict = {}
-
+    
+    mask = cv2.imread(maskpath)
     hsvmask = cv2.cvtColor(mask,cv2.COLOR_BGR2HSV)
     hist = cv2.calcHist([hsvmask],[0],None,[180],[0,179])
     

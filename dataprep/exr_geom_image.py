@@ -53,14 +53,6 @@ for entry in data["ids"]:
     hues_objdata[int(entry)] = info
 
 
-rows = np.arange(256)
-cols = np.arange(256)
-
-r,c = np.meshgrid(rows,cols)
-inds = np.stack((c,r),axis=-1).astype(np.float32)
-
-
-
 abspath = os.path.abspath(args.path)
 abspath = abspath.replace(abspath.split("/")[-1],"")
 
@@ -70,7 +62,7 @@ if not os.path.exists(write_path):
     os.mkdir(write_path)
 
 
-classes = ["WingR","WingL","Brick","Pole"]
+classes = ["WingR","WingL","Brick","Pole","Cockpit"]
 
 
 def getClass(objname):
@@ -80,10 +72,8 @@ def getClass(objname):
     return None
 
 
-def getObjFromHue(hue):
-    hue = int(round(hue/5))
-    name = data["ids"][str(hue)]
-    
+def getObjFromID(objid):
+    name = data["ids"][str(objid)]
     return name
 
 
@@ -107,15 +97,12 @@ def separate(mask):
         threshed = cv2.medianBlur(threshed.astype(np.uint8), 3)
         threshed = cv2.dilate(threshed, kernel, iterations=1)
 
-        #if np.sum(threshed) <= 255*100:
-            #continue;
-
-        maskdict[hue] = threshed
+        maskdict[int(round(hue/5))] = threshed
 
     return maskdict
 
 
-
+'''
 def overlay(i):
 
     print(i)
@@ -158,14 +145,57 @@ def overlay(i):
         objname = getObjFromHue(hue)
         if objname:
             objclass = objname.split(".")[0]
-            if objclass == "Pole" or objclass == "Engine":
+            if "Wing" in objclass:# objclass == "Pole" or objclass == "Engine" or objclass == "Cockpit":
                 mask += cv2.erode(masks[hue],kernel,iterations = 1)
 
     #mask = cv2.inRange( mask, (0,2,2), (179,255,255) )
     output = cv2.bitwise_and(output,output,mask=mask)
 
-    wr = os.path.join(write_path,"{}_geom.png".format(tag))
+    wr = os.path.join(write_path,"{}_geom_wing_a.png".format(tag))
     cv2.imwrite(wr,output)
+'''
+
+def overlay(i):
+
+    print(i)
+
+    tag = "{:0>4}".format(i)
+
+    viewmat = fu.matrix_from_string(data["viewmats"][i])
+    toworld = np.linalg.inv(viewmat)
+    projmat = fu.matrix_from_string(data["projection"])
+    
+    maskpath = os.path.join(abspath,"{}_masks.png".format(tag))
+    mask = cv2.imread(maskpath)
+    masks = separate(mask)
+
+    depthpath = os.path.join(abspath,"{}_npdepth.npy".format(tag))
+    depthmap = np.load(depthpath,allow_pickle=False)
+    depthmap = np.reshape(depthmap,(512,512))
+
+    xndc = np.linspace(-1,1,512)
+    yndc = np.linspace(1,-1,512)
+    x, y = np.meshgrid(xndc, yndc)
+    ndcs = np.stack((y,x),axis=-1).astype(np.float32)
+
+    output = np.zeros((512,512,4),dtype=np.float32)
+
+
+    for objid in masks:
+        objname = getObjFromID(objid)
+        if objname:
+            objclass = objname.split(".")[0]
+            if "Wing" in objclass or True:
+                curmask = masks[objid]
+                wingcoords = fu.unproject(depthmap,curmask,ndcs,toworld,hues_objdata[objid],projmat)
+                output += wingcoords
+
+    print(np.amax(output[:,:,3]))
+    output = (255 * output[:,:,2::-1]).astype(np.uint8)
+
+    wr = os.path.join(write_path,"{}_geom_wing_a.png".format(tag))
+    cv2.imwrite(wr,output)
+
 
 
 def iterOverlay(indices):

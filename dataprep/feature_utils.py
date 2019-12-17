@@ -108,6 +108,38 @@ def fromNDC(verts,dims):
     return newverts
 
 
+def unproject(depth,mask,ndcs,toworld,info,projmat):
+
+    tolocal = info["w2l"]
+    lx,ly,lz = info["lows"]
+    dx,dy,dz = info["dims"]
+
+    out = np.ones((512,512,4),dtype=np.float32)
+    inds = (mask > 250)
+
+    a = projmat[0,0]
+    b = projmat[1,1]
+    c = (ndcs/[a,b])**2
+
+    z = np.sqrt((depth**2)/(c[:,:,0] + c[:,:,1] + 1))
+
+    out[:,:,0] = z * ndcs[:,:,1]/a
+    out[:,:,1] = z * ndcs[:,:,0]/b
+    out[:,:,2] = -z
+
+    out = np.matmul(out,np.transpose(toworld))
+    out = np.matmul(out,np.transpose(tolocal))
+
+    out[:,:,0:3] -= [lx,ly,lz]
+    out[:,:,0:3] /= [dx,dy,dz]
+
+    out = np.absolute(out)
+    out[np.logical_not(inds)] = [0.0,0.0,0.0,0.0]
+
+    return out
+
+
+
 def unproject_to_local(data,infodict,toworld,p,dims=(256,256),pr=False):
 
     mask = int(round(data[3]/5))
@@ -136,8 +168,8 @@ def unproject_to_local(data,infodict,toworld,p,dims=(256,256),pr=False):
     c2 = (ndc_y/b)**2
     z = math.sqrt((depth**2)/(c1 + c2 + 1))
 
-    x = 1 * (z * ndc_y/a)
-    y = 1 * (z * ndc_x/b)
+    x = (z * ndc_y/a)
+    y = (z * ndc_x/b)
 
     viewPos[0] = x
     viewPos[1] = y
