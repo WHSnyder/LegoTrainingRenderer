@@ -190,7 +190,7 @@ def overlay(i):
                 wingcoords = fu.unproject(depthmap,curmask,ndcs,toworld,hues_objdata[objid],projmat)
                 output += wingcoords
 
-    print(np.amax(output[:,:,3]))
+    print(np.amax(output))
     output = (255 * output[:,:,2::-1]).astype(np.uint8)
 
     wr = os.path.join(write_path,"{}_geom_wing_a.png".format(tag))

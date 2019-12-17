@@ -136,57 +136,7 @@ def unproject(depth,mask,ndcs,toworld,info,projmat):
     out = np.absolute(out)
     out[np.logical_not(inds)] = [0.0,0.0,0.0,0.0]
 
-    return out
-
-
-
-def unproject_to_local(data,infodict,toworld,p,dims=(256,256),pr=False):
-
-    mask = int(round(data[3]/5))
-
-    if mask == 0:
-        return np.array([0.0,0.0,0.0,1.0],dtype=np.float32)
-
-    info = infodict[mask]
-    tolocal = info["w2l"]
-    lx,ly,lz = info["lows"]
-    dx,dy,dz = info["dims"]
-
-    depth = data[2]
-
-    ndcs = data[0:2]
-    ndcs = fromNDC([ndcs[::-1]],dims)[0]
-
-    ndc_y = ndcs[0]
-    ndc_x = ndcs[1]
-
-    viewPos = np.zeros((4),dtype=np.float32)
-    a = p[0,0]
-    b = p[1,1]
-
-    c1 = (ndc_x/a)**2
-    c2 = (ndc_y/b)**2
-    z = math.sqrt((depth**2)/(c1 + c2 + 1))
-
-    x = (z * ndc_y/a)
-    y = (z * ndc_x/b)
-
-    viewPos[0] = x
-    viewPos[1] = y
-    viewPos[2] = -z
-    viewPos[3] = 1.0
-
-    worldPos = np.matmul(toworld,viewPos)
-    localPos = np.matmul(tolocal,worldPos)
-
-    localPos[0] = (localPos[0] - lx)/dx 
-    localPos[1] = (localPos[1] - ly)/dy
-    localPos[2] = (localPos[2] - lz)/dz
-
-    localPos = np.absolute( localPos )
-
-    return np.clip(localPos,0.0,1.0)
-
+    return np.clip(out,0.0,1.0)
 
 
 
