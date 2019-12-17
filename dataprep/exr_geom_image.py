@@ -102,59 +102,6 @@ def separate(mask):
     return maskdict
 
 
-'''
-def overlay(i):
-
-    print(i)
-
-    tag = "{:0>4}".format(i)
-
-    viewmat = fu.matrix_from_string(data["viewmats"][i])
-    toworld = np.linalg.inv(viewmat)
-    
-    maskpath = os.path.join(abspath,"{}_masks.png".format(tag))
-    mask = cv2.imread(maskpath)
-    maskraw = cv2.resize(mask, (256,256), cv2.INTER_NEAREST)
-    mask = cv2.cvtColor(maskraw,cv2.COLOR_BGR2HSV)[:,:,0]
-
-    depthpath = os.path.join(abspath,"{}_npdepth.npy".format(tag))
-    depthmap = np.load(depthpath,allow_pickle=False)
-
-    projmat = fu.matrix_from_string(data["projection"])
-
-
-    d = np.reshape(depthmap,(512,512,1))
-    d = d[0::2,0::2]
-
-    f = np.concatenate((inds,d),axis=-1)
-
-    kernel = np.ones((3,3),np.uint8)
-
-    mask = np.reshape(mask,(256,256,1))
-    g = np.concatenate((f,mask),axis=-1)
-
-    output = np.apply_along_axis(func1d=fu.unproject_to_local, axis=-1, arr=g, infodict=hues_objdata, toworld=toworld, p=projmat, dims=(256,256))
-    output = (np.around(255 * output[:,:,2::-1])).astype(np.uint8)
-
-    masks = separate(maskraw)
-    mask = np.zeros((256,256)).astype(np.uint8)
-
-    kernel = np.ones((2,2),np.uint8)
-
-    for hue in masks:
-        objname = getObjFromHue(hue)
-        if objname:
-            objclass = objname.split(".")[0]
-            if "Wing" in objclass:# objclass == "Pole" or objclass == "Engine" or objclass == "Cockpit":
-                mask += cv2.erode(masks[hue],kernel,iterations = 1)
-
-    #mask = cv2.inRange( mask, (0,2,2), (179,255,255) )
-    output = cv2.bitwise_and(output,output,mask=mask)
-
-    wr = os.path.join(write_path,"{}_geom_wing_a.png".format(tag))
-    cv2.imwrite(wr,output)
-'''
-
 def overlay(i):
 
     print(i)
@@ -209,8 +156,6 @@ num_procs = 1 if len(indices) < cores else cores
 indices_lists = np.array_split(indices, num_procs)
 
 processes = []
-
-#indices_lists=np.array([[1]])
 
 for ilist in indices_lists:
     processes.append( Process(target=iterOverlay, args=(ilist,)) )

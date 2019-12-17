@@ -110,6 +110,8 @@ def fromNDC(verts,dims):
 
 def unproject(depth,mask,ndcs,toworld,info,projmat):
 
+    #could be a little faster, not worth the tinkering
+
     tolocal = info["w2l"]
     lx,ly,lz = info["lows"]
     dx,dy,dz = info["dims"]
@@ -137,8 +139,6 @@ def unproject(depth,mask,ndcs,toworld,info,projmat):
     out[np.logical_not(inds)] = [0.0,0.0,0.0,0.0]
 
     return np.clip(out,0.0,1.0)
-
-
 
 
 brickstuds = get_object_studs("Brick")
