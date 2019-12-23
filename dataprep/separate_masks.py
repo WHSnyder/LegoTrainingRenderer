@@ -28,7 +28,7 @@ if not os.path.exists(write_path):
 #    os.system("rm {}".format(os.path.join(write_path,"*")))
 
 
-class_counts = {"Engine":0,"Wing":0,"Brick":0,"Pole":0}
+class_counts = {"Engine":0,"Wing":0,"Cockpit":0,"Pole":0}
 
 
 def getObjFromHue(hue):

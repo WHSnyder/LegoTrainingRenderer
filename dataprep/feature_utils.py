@@ -5,6 +5,10 @@ import math
 from numpy import linalg as LA
 import matplotlib.pyplot as plt
 
+'''
+Useful helper functions, most of which were only relevant to previous iterations of the project... 
+'''
+
 hf="/home"
 
 expr = re.compile("([-]?[0-9]*\.[0-9]{4})")
@@ -138,7 +142,68 @@ def unproject(depth,mask,ndcs,toworld,info,projmat):
     out = np.absolute(out)
     out[np.logical_not(inds)] = [0.0,0.0,0.0,0.0]
 
-    return np.clip(out,0.0,1.0)
+    return np.clip(out,0.0,1.0)[:,:,2::-1]
+
+
+
+def unproject(depth,mask,ndcs,toworld,info,projmat):
+
+    #could be a little faster, not worth the tinkering
+
+    tolocal = info["w2l"]
+    lx,ly,lz = info["lows"]
+    dx,dy,dz = info["dims"]
+
+    out = np.ones((512,512,4),dtype=np.float32)
+    inds = (mask > 250)
+
+    a = projmat[0,0]
+    b = projmat[1,1]
+    c = (ndcs/[a,b])**2
+
+    z = np.sqrt((depth**2)/(c[:,:,0] + c[:,:,1] + 1))
+
+    out[:,:,0] = z * ndcs[:,:,1]/a
+    out[:,:,1] = z * ndcs[:,:,0]/b
+    out[:,:,2] = -z
+
+    out = np.matmul(out,np.transpose(toworld))
+    out = np.matmul(out,np.transpose(tolocal))
+
+    out[:,:,0:3] -= [lx,ly,lz]
+    out[:,:,0:3] /= [dx,dy,dz]
+
+    out = np.absolute(out)
+    out[np.logical_not(inds)] = [0.0,0.0,0.0,0.0]
+
+    return np.clip(out,0.0,1.0)[:,:,2::-1]
+
+
+
+def unproject_to_cam(depth,mask,ndcs,toworld,info,projmat):
+
+    out = np.ones((512,512,4),dtype=np.float32)
+    inds = (mask > 250)
+
+    a = projmat[0,0]
+    b = projmat[1,1]
+    c = (ndcs/[a,b])**2
+
+    z = np.sqrt((depth**2)/(c[:,:,0] + c[:,:,1] + 1))
+
+    out[:,:,0] = z * ndcs[:,:,1]/a
+    out[:,:,1] = z * ndcs[:,:,0]/b
+    out[:,:,2] = -z
+
+    out = np.absolute(out)
+    out[np.logical_not(inds)] = [0.0,0.0,0.0,0.0]
+
+    return out[:,:,2::-1]
+
+
+
+
+#Largely obselete code for testing basic OpenCV stuff...
 
 
 brickstuds = get_object_studs("Brick")

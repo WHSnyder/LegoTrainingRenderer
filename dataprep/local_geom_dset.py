@@ -8,13 +8,11 @@ import multiprocessing as mp
 from multiprocessing import Process
 import random
 
-random.seed()
-
-#sys.path.append("/home/will/projects/legoproj")
-
-#import cvscripts
-#from cvscripts import feature_utils as fu
 import feature_utils as fu
+
+
+
+random.seed()
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-p', '--path', dest='path',required=True,help='JSON data path?')
@@ -23,6 +21,8 @@ args = parser.parse_args()
 
 with open(args.path) as json_file:
     data = json.load(json_file)
+
+
 
 
 hues_objdata = {}
@@ -78,6 +78,7 @@ def getObjFromID(objid):
 
 
 
+
 def separate(mask):
     
     kernel = np.ones((2,2), np.uint8) 
@@ -102,6 +103,7 @@ def separate(mask):
     return maskdict
 
 
+
 def overlay(i):
 
     print(i)
@@ -120,34 +122,35 @@ def overlay(i):
     depthmap = np.load(depthpath,allow_pickle=False)
     depthmap = np.reshape(depthmap,(512,512))
 
+    #maybe separate this from repeating function...
+
     xndc = np.linspace(-1,1,512)
     yndc = np.linspace(1,-1,512)
     x, y = np.meshgrid(xndc, yndc)
     ndcs = np.stack((y,x),axis=-1).astype(np.float32)
 
-    output = np.zeros((512,512,4),dtype=np.float32)
-
+    output = np.zeros((512,512,3),dtype=np.float32)
 
     for objid in masks:
         objname = getObjFromID(objid)
         if objname:
             objclass = objname.split(".")[0]
-            if "Wing" in objclass or True:
+            if True:
                 curmask = masks[objid]
-                wingcoords = fu.unproject(depthmap,curmask,ndcs,toworld,hues_objdata[objid],projmat)
-                output += wingcoords
+                #wingcoords = fu.unproject(depthmap,curmask,ndcs,toworld,hues_objdata[objid],projmat)
+                cam_coords = fu.unproject_to_cam(depthmap,curmask,ndcs,toworld,hues_objdata[objid],projmat)
+                output += cam_coords
 
-    print(np.amax(output))
-    output = (255 * output[:,:,2::-1]).astype(np.uint8)
+    np.save(os.path.join(write_path,"{}_camcoords.npy".format(tag)),output)
 
-    wr = os.path.join(write_path,"{}_geom_wing_a.png".format(tag))
-    cv2.imwrite(wr,output)
-
+    #wr = os.path.join(write_path,"{}_view.png".format(tag))
+    #cv2.imwrite(wr,output)
 
 
 def iterOverlay(indices):
     for ind in indices:
         overlay(ind)
+
 
 
 indices = np.arange(data["runs"]) if args.num is None else np.arange(args.num) 

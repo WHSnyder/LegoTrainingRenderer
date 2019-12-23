@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import datetime
 import json
 import os
@@ -21,7 +19,7 @@ random.seed(seconds)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-p', '--paths', dest='paths', nargs='+', required=True, help='JSON dset paths?')
-#parser.add_argument('-a', '--aug', dest='aug', action='store_true', help='Augment the data or not?', required=False)
+parser.add_argument('-a', '--aug', dest='aug', action='store_true', help='Augment the data or not?', required=False)
 parser.add_argument('-t', '--tag', dest='tag', help='Dset tag?', required=True)
 args = parser.parse_args()
 
@@ -48,7 +46,7 @@ CATEGORIES = [
     },
     {
         'id': 2,
-        'name': 'Brick',
+        'name': 'Cockpit',
         'supercategory': 'Piece',
     },
     {
@@ -151,7 +149,6 @@ for path in args.paths:
             coco_output["images"].append(image_info)
 
             
-            #for jindex in masks:
             for mask in masks:
                 
                 maskclass = mask["class"]
