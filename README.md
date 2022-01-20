@@ -38,7 +38,7 @@ Includes a basic scene with a tracked camera, scripts for rendering images, norm
 ## Requirements:
 
 * [OpenEXR Python libraries](https://github.com/jamesbowman/openexrpython) (pip install git+https://github.com/jamesbowman/openexrpython.git  <-- that command works most reliably on MacOS & Ubuntu...)
-* Blender not 2.8
+* Blender < 2.8
 * Python 3
 
 
@@ -50,6 +50,6 @@ This project should be useful to people interested in generating high quality tr
 
 ## To Do:
 
-* Blender 2.8 support
+* Blender >= 2.8 support
 
 * Add menus/widgets as part of an actual addon
